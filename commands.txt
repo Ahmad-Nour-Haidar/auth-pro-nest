@@ -15,3 +15,24 @@ npm init --yes
 
 /////
 
+# NestJS and Core Modules
+@nestjs/core @nestjs/common
+npm install @nestjs/config @nestjs/typeorm @nestjs/jwt @nestjs/passport passport
+
+# Database and ORM
+npm install typeorm pg
+
+# Authentication
+npm install bcrypt speakeasy passport-jwt
+
+# Email Sending
+npm install nodemailer
+
+# Validation and Security
+npm install class-validator class-transformer
+
+# Rate Limiting
+npm install @nestjs/throttler
+
+# Optional - if you later add Google OAuth or similar
+# npm install passport-google-oauth20 passport-facebook
