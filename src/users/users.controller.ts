@@ -4,39 +4,57 @@ import {
   Delete,
   Get,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
 } from '@nestjs/common';
-import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UpdateUserRolesDto } from './dto/update-user-roles.dto';
+import { UsersService } from './users.service';
 
 @Controller('users')
-export class UsersController {
+export class UserController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post()
-  create(@Body() createUserDto: CreateUserDto) {
+  async create(@Body() createUserDto: CreateUserDto) {
     return this.usersService.create(createUserDto);
   }
 
-  @Get()
-  findAll() {
-    return this.usersService.findAll();
+  @Patch(':id')
+  async update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() updateUserDto: UpdateUserDto,
+  ) {
+    return this.usersService.update(id, updateUserDto);
+  }
+
+  @Patch(':id/update-roles')
+  async updateRoles(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() updateUserRolesDto: UpdateUserRolesDto,
+  ) {
+    return await this.usersService.updateRoles(id, updateUserRolesDto);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.usersService.findOne(+id);
+  async findOne(@Param('id', ParseUUIDPipe) id: string) {
+    return this.usersService.findOne(id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(+id, updateUserDto);
+  @Get()
+  async findAll() {
+    return this.usersService.findAll();
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.usersService.remove(+id);
+  async softDelete(@Param('id', ParseUUIDPipe) id: string) {
+    return await this.usersService.softDelete(id);
+  }
+
+  @Delete(':id/hard-delete')
+  async hardDelete(@Param('id', ParseUUIDPipe) id: string) {
+    return await this.usersService.hardDelete(id);
   }
 }
