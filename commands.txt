@@ -54,3 +54,9 @@ nest generate service users --no-spec
 nest generate module admin
 nest generate controller admin --no-spec
 nest generate service admin --no-spec
+
+npm i @nestjs/mapped-types
+
+npm install bcrypt
+npm install --save-dev @types/bcrypt
+
