@@ -48,8 +48,8 @@ import { LoggerMiddleware } from './middleware/logger.middleware';
     // Rate Limiting (optional but recommended)
     ThrottlerModule.forRoot([
       {
-        ttl: 60000,
-        limit: 10,
+        ttl: 60000, // 60,000 milliseconds (or 1 minute)
+        limit: 10, // maximum number of requests allowed within the specified TTL
       },
     ]),
 
