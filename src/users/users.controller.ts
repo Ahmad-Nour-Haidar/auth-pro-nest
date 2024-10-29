@@ -14,7 +14,7 @@ import { UpdateUserRolesDto } from './dto/update-user-roles.dto';
 import { UsersService } from './users.service';
 
 @Controller('users')
-export class UserController {
+export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post()
