@@ -36,3 +36,19 @@ npm install @nestjs/throttler
 
 # Optional - if you later add Google OAuth or similar
 # npm install passport-google-oauth20 passport-facebook
+
+
+# Generate Auth module with controller and service
+nest generate module auth
+nest generate controller auth --no-spec
+nest generate service auth --no-spec
+
+# Generate User module with controller and service
+nest generate module user
+nest generate controller user --no-spec
+nest generate service user --no-spec
+
+# Generate Admin module with controller and service
+nest generate module admin
+nest generate controller admin --no-spec
+nest generate service admin --no-spec
