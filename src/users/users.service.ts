@@ -16,13 +16,13 @@ import { BcryptService } from './services/bcrypt.service';
 export class UsersService {
   constructor(
     @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
+    private readonly usersRepository: Repository<User>,
     private readonly bcryptService: BcryptService,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
     // Check if the email or username already exists
-    const existingUser = await this.userRepository.findOne({
+    const existingUser = await this.usersRepository.findOne({
       where: [
         { email: createUserDto.email },
         { username: createUserDto.username },
@@ -40,52 +40,49 @@ export class UsersService {
     }
 
     // Hash the password
-    const hashedPassword = await this.bcryptService.hash(
+    createUserDto.password = await this.bcryptService.hash(
       createUserDto.password,
     );
 
     // Create the user object with the hashed password
-    const user = this.userRepository.create({
-      ...createUserDto,
-      password: hashedPassword, // Store hashed password
-    });
+    const user = this.usersRepository.create(createUserDto);
 
-    return await this.userRepository.save(user);
+    return await this.usersRepository.save(user);
   }
 
   async update(id: string, updateUserDto: UpdateUserDto) {
-    const user = await this.userRepository.preload({ id, ...updateUserDto });
+    const user = await this.usersRepository.preload({ id, ...updateUserDto });
     if (!user) throw new NotFoundException(`User with ID ${id} not found`);
-    return await this.userRepository.save(user);
+    return await this.usersRepository.save(user);
   }
 
   async updateRoles(id: string, updateUserRolesDto: UpdateUserRolesDto) {
-    const user = await this.userRepository.findOne({ where: { id } });
+    const user = await this.usersRepository.findOne({ where: { id } });
     if (!user) throw new NotFoundException(`User with ID ${id} not found`);
     user.roles = updateUserRolesDto.roles;
-    return await this.userRepository.save(user);
+    return await this.usersRepository.save(user);
   }
 
   async findOne(id: string) {
-    const user = await this.userRepository.findOne({ where: { id } });
+    const user = await this.usersRepository.findOne({ where: { id } });
     if (!user) throw new NotFoundException(`User with ID ${id} not found`);
     return user;
   }
 
   async findAll() {
-    return await this.userRepository.find();
+    return await this.usersRepository.find();
   }
 
   async softDelete(id: string) {
-    const user = await this.userRepository.findOne({ where: { id } });
+    const user = await this.usersRepository.findOne({ where: { id } });
     if (!user) throw new NotFoundException(`User with ID ${id} not found`);
     user.deleted_at = new Date();
-    return await this.userRepository.save(user);
+    return await this.usersRepository.save(user);
   }
 
   async hardDelete(id: string) {
-    const user = await this.userRepository.findOne({ where: { id } });
+    const user = await this.usersRepository.findOne({ where: { id } });
     if (!user) throw new NotFoundException(`User with ID ${id} not found`);
-    return await this.userRepository.remove(user);
+    return await this.usersRepository.remove(user);
   }
 }
