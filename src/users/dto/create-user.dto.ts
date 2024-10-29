@@ -40,8 +40,9 @@ export class CreateUserDto {
   )
   password: string;
 
-  @IsNotEmpty({ message: 'Roles are required' }) // todo check if required this.
+  // @IsNotEmpty({ message: 'Roles are required' })
+  @IsOptional()
   @IsArray({ message: 'Roles must be an array' })
   @IsEnum(Roles, { each: true, message: 'Invalid role value' })
-  readonly roles: Roles[];
+  readonly roles: Roles[] = [Roles.User]; // Default to Roles.User
 }
