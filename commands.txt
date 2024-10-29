@@ -44,9 +44,9 @@ nest generate controller auth --no-spec
 nest generate service auth --no-spec
 
 # Generate User module with controller and service
-nest generate module user
-nest generate controller user --no-spec
-nest generate service user --no-spec
+nest generate module users
+nest generate controller users --no-spec
+nest generate service users --no-spec
 
 # Generate Admin module with controller and service
 nest generate module admin
