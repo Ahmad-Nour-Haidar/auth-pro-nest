@@ -13,6 +13,8 @@ npm init --yes
 ✏️	Move files
 ✏️	Move folder
 
+// postgres://username:password@host:port/database
+
 /////
 
 # NestJS and Core Modules
