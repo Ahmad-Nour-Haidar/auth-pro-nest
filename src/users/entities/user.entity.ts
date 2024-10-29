@@ -31,7 +31,7 @@ export class User {
   @Column({ type: 'enum', enum: Roles, array: true, default: [Roles.User] })
   roles: Roles[];
 
-  @Column({ type: 'enum', enum: LoginMethod })
+  @Column({ type: 'enum', enum: LoginMethod, default: LoginMethod.LocalEmail })
   login_method: LoginMethod;
 
   @Column({ nullable: true })
