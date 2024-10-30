@@ -59,4 +59,7 @@ npm i @nestjs/mapped-types
 
 npm install bcrypt
 npm install --save-dev @types/bcrypt
+npm install --save-dev @types/passport-jwt
+npm install --save @types/passport-local
+
 
