@@ -12,6 +12,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UpdateUserRolesDto } from './dto/update-user-roles.dto';
 import { UsersService } from './users.service';
+import { CreateMethod } from '../auth/enums/create-method.enum';
 
 @Controller('users')
 export class UsersController {
@@ -19,7 +20,7 @@ export class UsersController {
 
   @Post()
   async create(@Body() createUserDto: CreateUserDto) {
-    return this.usersService.create(createUserDto);
+    return this.usersService.create(createUserDto, CreateMethod.LocalEmail);
   }
 
   @Patch(':id')
@@ -51,6 +52,11 @@ export class UsersController {
   @Delete(':id')
   async softDelete(@Param('id', ParseUUIDPipe) id: string) {
     return await this.usersService.softDelete(id);
+  }
+
+  @Patch(':id/restore')
+  async restore(@Param('id', ParseUUIDPipe) id: string) {
+    return this.usersService.restore(id);
   }
 
   @Delete(':id/hard-delete')
