@@ -16,6 +16,9 @@ async function bootstrap() {
   // Enable CORS if needed
   app.enableCors();
 
+  // Set the global prefix for all routes
+  app.setGlobalPrefix('api/v1');
+
   const port = process.env.PORT || 3000;
   await app.listen(port);
   Logger.log(`Application is running on PORT: ${port}`);
