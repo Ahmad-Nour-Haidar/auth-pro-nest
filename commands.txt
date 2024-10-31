@@ -64,5 +64,10 @@ npm install --save @types/passport-local
 npm install uuid
 npm install --save-dev @types/uuid
 
+npm install lodash
+npm install --save-dev @types/lodash
+
+
+
 
 
