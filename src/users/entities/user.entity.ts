@@ -7,8 +7,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-import { Roles } from '../../auth/enums/roles.enum';
-import { CreateMethod } from '../../auth/enums/create-method.enum';
+import { CreateMethod } from '../enums/create-method.enum';
 
 @Entity('users')
 export class User {
@@ -26,9 +25,6 @@ export class User {
 
   @Column({ type: 'varchar', select: false })
   password: string;
-
-  @Column({ type: 'enum', enum: Roles, array: true, default: [Roles.User] })
-  roles: Roles[];
 
   @Column({
     type: 'enum',

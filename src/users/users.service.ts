@@ -1,4 +1,3 @@
-// src/users/user.service.ts
 import {
   ConflictException,
   Injectable,
@@ -10,8 +9,8 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UpdateUserRolesDto } from './dto/update-user-roles.dto';
 import { User } from './entities/user.entity';
-import { BcryptService } from './services/bcrypt.service';
-import { CreateMethod } from '../auth/enums/create-method.enum';
+import { CreateMethod } from './enums/create-method.enum';
+import { BcryptService } from '../common/services/bcrypt.service';
 
 @Injectable()
 export class UsersService {
@@ -86,7 +85,6 @@ export class UsersService {
     const user = await this.usersRepository.findOneBy({ id });
 
     if (!user) throw new NotFoundException(`User with ID ${id} not found`);
-    user.roles = updateUserRolesDto.roles;
     return await this.usersRepository.save(user);
   }
 

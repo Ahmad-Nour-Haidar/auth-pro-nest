@@ -8,7 +8,6 @@ import {
   Matches,
   MaxLength,
 } from 'class-validator';
-import { Roles } from '../../auth/enums/roles.enum';
 
 export class CreateUserDto {
   @IsEmail({}, { message: 'Email must be a valid email address' })
@@ -41,8 +40,8 @@ export class CreateUserDto {
   @IsNotEmpty({ message: 'Password is required' })
   password: string;
 
-  @IsOptional()
-  @IsArray({ message: 'Roles must be an array' })
-  @IsEnum(Roles, { each: true, message: 'Invalid role value' })
-  readonly roles: Roles[] = [Roles.User]; // Default to Roles.User
+  // @IsOptional()
+  // @IsArray({ message: 'Roles must be an array' })
+  // @IsEnum(Roles, { each: true, message: 'Invalid role value' })
+  // readonly roles: Roles[] = [Roles.User]; // Default to Roles.User
 }
