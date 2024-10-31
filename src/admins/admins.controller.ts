@@ -11,40 +11,53 @@ export class AdminsController {
   constructor(private readonly adminsService: AdminsService) {}
 
   @Post()
-  create(@Body() createAdminDto: CreateAdminDto) {
-    return this.adminsService.create(createAdminDto);
+  async create(@Body() createAdminDto: CreateAdminDto) {
+    return await this.adminsService.create(createAdminDto);
   }
 
   @Get()
-  findAll() {
-    return this.adminsService.findAll();
+  async findAll() {
+    return await this.adminsService.findAll();
   }
 
   @Get(':id')
-  findOne(@UUIDParam() id: string) {
-    return this.adminsService.findOne(id);
+  async findOne(@UUIDParam() id: string) {
+    return await this.adminsService.findOne(id);
   }
 
   @Patch(':id')
-  update(@UUIDParam() id: string, @Body() updateAdminDto: UpdateAdminDto) {
-    return this.adminsService.update(id, updateAdminDto);
+  async update(
+    @UUIDParam() id: string,
+    @Body() updateAdminDto: UpdateAdminDto,
+  ) {
+    return await this.adminsService.update(id, updateAdminDto);
   }
 
   @Delete(':id')
-  remove(@UUIDParam() id: string) {
-    return this.adminsService.remove(id);
+  async remove(@UUIDParam() id: string) {
+    return await this.adminsService.softDelete(id); // Soft delete
+  }
+
+  @Delete('/hard-delete/:id')
+  async hardDelete(@UUIDParam() id: string) {
+    return await this.adminsService.hardDelete(id); // Hard delete
+  }
+
+  @Post('/restore/:id')
+  async restore(@UUIDParam() id: string) {
+    return await this.adminsService.restore(id); // Restore soft-deleted admin
   }
 
   @Post('/super-admins')
-  createSuperAdmin(@Body() createSuperAdminDto: CreateSuperAdminDto) {
-    return this.adminsService.createSuperAdmin(createSuperAdminDto);
+  async createSuperAdmin(@Body() createSuperAdminDto: CreateSuperAdminDto) {
+    return await this.adminsService.createSuperAdmin(createSuperAdminDto);
   }
 
   @Patch('/super-admins/:id')
-  updateSuperAdmin(
+  async updateSuperAdmin(
     @UUIDParam() id: string,
     @Body() updateSuperAdminDto: UpdateSuperAdminDto,
   ) {
-    return this.adminsService.updateSuperAdmin(id, updateSuperAdminDto);
+    return await this.adminsService.updateSuperAdmin(id, updateSuperAdminDto);
   }
 }
