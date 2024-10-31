@@ -56,6 +56,16 @@ export class UsersService {
     return await this.usersRepository.save(user);
   }
 
+  async findAll() {
+    return await this.usersRepository.find();
+  }
+
+  async findOne(id: string) {
+    const user = await this.usersRepository.findOneBy({ id });
+    if (!user) throw new NotFoundException(`User with ID ${id} not found`);
+    return user;
+  }
+
   async update(id: string, updateUserDto: UpdateUserDto) {
     // Retrieve the existing user
     const user = await this.usersRepository.findOneBy({ id });
@@ -86,16 +96,6 @@ export class UsersService {
 
     if (!user) throw new NotFoundException(`User with ID ${id} not found`);
     return await this.usersRepository.save(user);
-  }
-
-  async findOne(id: string) {
-    const user = await this.usersRepository.findOneBy({ id });
-    if (!user) throw new NotFoundException(`User with ID ${id} not found`);
-    return user;
-  }
-
-  async findAll() {
-    return await this.usersRepository.find();
   }
 
   async softDelete(id: string) {
