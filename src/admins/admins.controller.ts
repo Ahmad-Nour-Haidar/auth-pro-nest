@@ -5,14 +5,26 @@ import { UpdateAdminDto } from './dto/update-admin.dto';
 import { CreateSuperAdminDto } from './dto/create-super-admin.dto';
 import { UpdateSuperAdminDto } from './dto/update-super-admin.dto';
 import { UUIDParam } from '../common/decorators/uuid-param.decorator';
+import { LodashService } from '../common/services/lodash.service';
+import { ResponseService } from '../common/services/response.service';
 
 @Controller('admins')
 export class AdminsController {
-  constructor(private readonly adminsService: AdminsService) {}
+  constructor(
+    private readonly adminsService: AdminsService,
+    private readonly lodashService: LodashService,
+    private readonly responseService: ResponseService,
+  ) {}
 
   @Post()
   async create(@Body() createAdminDto: CreateAdminDto) {
-    return await this.adminsService.create(createAdminDto);
+    const admin = this.lodashService.omitKeys(
+      await this.adminsService.create(createAdminDto),
+      ['password', 'password_changed_at', 'last_login_at', 'last_logout_at'],
+    );
+    return this.responseService.success('Admin created successfully', {
+      admin,
+    });
   }
 
   @Get()

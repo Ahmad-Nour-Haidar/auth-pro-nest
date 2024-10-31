@@ -29,7 +29,9 @@ export class AdminsService {
       createAdminDto.password,
     );
 
-    return this.adminRepository.save(createAdminDto);
+    const admin = this.adminRepository.create(createAdminDto);
+
+    return this.adminRepository.save(admin);
   }
 
   findAll(): Promise<Admin[]> {
