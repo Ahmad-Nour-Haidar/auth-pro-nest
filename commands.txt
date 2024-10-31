@@ -61,5 +61,8 @@ npm install bcrypt
 npm install --save-dev @types/bcrypt
 npm install --save-dev @types/passport-jwt
 npm install --save @types/passport-local
+npm install uuid
+npm install --save-dev @types/uuid
+
 
 

@@ -1,5 +1,5 @@
 import { SetMetadata } from '@nestjs/common';
-import { Roles } from '../../auth/enums/roles.enum';
+import { Roles } from '../../admins/enums/roles.enum';
 
 export const ALLOWED_ROLES_KEY = 'roles';
 
@@ -9,7 +9,7 @@ export const RolesDecorator = (...roles: Roles[]) =>
 export const SuperAdminOnly = () =>
   SetMetadata(ALLOWED_ROLES_KEY, [Roles.SuperAdmin]);
 
-export const UserOnly = () => SetMetadata(ALLOWED_ROLES_KEY, [Roles.User]);
+export const AdminOnly = () => SetMetadata(ALLOWED_ROLES_KEY, [Roles.Admin]);
 
 export const AdminOrHigher = () =>
   SetMetadata(ALLOWED_ROLES_KEY, [Roles.SuperAdmin, Roles.Admin]);

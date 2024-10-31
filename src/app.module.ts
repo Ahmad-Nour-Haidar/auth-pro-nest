@@ -1,6 +1,5 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { AuthModule } from './auth/auth.module';
-import { AdminModule } from './admin/admin.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -8,6 +7,8 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { UsersModule } from './users/users.module';
 import { validate } from './config/env.validation';
 import { LoggerMiddleware } from './middleware/logger.middleware';
+import { AdminsModule } from './admins/admins.module';
+import { UtilitiesModule } from './utilities/utilities.module';
 
 @Module({
   imports: [
@@ -56,7 +57,8 @@ import { LoggerMiddleware } from './middleware/logger.middleware';
     // Application modules
     UsersModule,
     AuthModule,
-    AdminModule,
+    AdminsModule,
+    UtilitiesModule,
   ],
 })
 export class AppModule implements NestModule {

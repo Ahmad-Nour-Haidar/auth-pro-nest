@@ -17,7 +17,7 @@ async function bootstrap() {
   app.enableCors();
 
   // Set the global prefix for all routes
-  app.setGlobalPrefix('api/v1');
+  app.setGlobalPrefix('api');
 
   const port = process.env.PORT || 3000;
   await app.listen(port);
