@@ -1,6 +1,7 @@
 import {
   ConflictException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { CreateAdminDto } from './dto/create-admin.dto';
@@ -11,6 +12,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { BcryptService } from '../common/services/bcrypt.service';
 import { Admin } from './entities/admin.entity';
+import { Roles } from './enums/roles.enum';
 
 @Injectable()
 export class AdminsService {
@@ -82,24 +84,36 @@ export class AdminsService {
     return this.adminRepository.save(admin);
   }
 
-  async restore(id: string): Promise<{ message: string }> {
+  async restore(id: string): Promise<Admin> {
     // Check if the admin exists and is soft deleted
     const admin = await this.adminRepository.findOne({
       where: { id },
       withDeleted: true, // includes soft-deleted records in the search
     });
 
-    if (!admin || !admin.deleted_at) {
+    if (!admin) {
       throw new NotFoundException(
         `Admin with ID ${id} not found or not soft deleted`,
       );
     }
 
+    if (!admin.deleted_at) {
+      throw new ConflictException(
+        `Admin with ID ${id} is not soft deleted and cannot be restored`,
+      );
+    }
+
     // Restore the admin
     const result = await this.adminRepository.restore(id);
-    console.log(result);
 
-    return { message: `Admin with ID ${id} has been restored` };
+    if (result.affected === 1) {
+      admin.deleted_at = null;
+      return admin;
+    } else {
+      throw new InternalServerErrorException(
+        `Admin with ID ${id} could not be restored due to a database error`,
+      );
+    }
   }
 
   async hardDelete(id: string): Promise<Admin> {
@@ -110,14 +124,17 @@ export class AdminsService {
   async createSuperAdmin(
     createSuperAdminDto: CreateSuperAdminDto,
   ): Promise<Admin> {
-    return this.create({ ...createSuperAdminDto });
+    return this.create({ ...createSuperAdminDto, roles: [Roles.SuperAdmin] });
   }
 
   async updateSuperAdmin(
     id: string,
     updateSuperAdminDto: UpdateSuperAdminDto,
   ): Promise<Admin> {
-    return this.update(id, { ...updateSuperAdminDto });
+    delete updateSuperAdminDto.access_password;
+    return this.update(id, {
+      ...updateSuperAdminDto,
+    });
   }
 
   private async getAdminById(id: string): Promise<Admin> {

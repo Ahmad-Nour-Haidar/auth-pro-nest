@@ -1,4 +1,13 @@
-import { Body, Controller, Delete, Get, Patch, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+  Post,
+} from '@nestjs/common';
 import { AdminsService } from './admins.service';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { UpdateAdminDto } from './dto/update-admin.dto';
@@ -7,6 +16,7 @@ import { UpdateSuperAdminDto } from './dto/update-super-admin.dto';
 import { UUIDParam } from '../common/decorators/uuid-param.decorator';
 import { LodashService } from '../common/services/lodash.service';
 import { ResponseService } from '../common/services/response.service';
+import { Admin } from './entities/admin.entity';
 
 @Controller('admins')
 export class AdminsController {
@@ -18,23 +28,26 @@ export class AdminsController {
 
   @Post()
   async create(@Body() createAdminDto: CreateAdminDto) {
-    const admin = this.lodashService.omitKeys(
-      await this.adminsService.create(createAdminDto),
-      ['password', 'password_changed_at', 'last_login_at', 'last_logout_at'],
-    );
+    const admin = await this.adminsService.create(createAdminDto);
     return this.responseService.success('Admin created successfully', {
-      admin,
+      admin: this.formatAdmin(admin),
     });
   }
 
   @Get()
   async findAll() {
-    return await this.adminsService.findAll();
+    const admins = await this.adminsService.findAll();
+    return this.responseService.success('Admins retrieved successfully', {
+      admins: admins.map((admin) => this.formatAdmin(admin)),
+    });
   }
 
   @Get(':id')
   async findOne(@UUIDParam() id: string) {
-    return await this.adminsService.findOne(id);
+    const admin = await this.adminsService.findOne(id);
+    return this.responseService.success('Admin retrieved successfully', {
+      admin: this.formatAdmin(admin),
+    });
   }
 
   @Patch(':id')
@@ -42,27 +55,39 @@ export class AdminsController {
     @UUIDParam() id: string,
     @Body() updateAdminDto: UpdateAdminDto,
   ) {
-    return await this.adminsService.update(id, updateAdminDto);
+    const updatedAdmin = await this.adminsService.update(id, updateAdminDto);
+    return this.responseService.success('Admin updated successfully', {
+      admin: this.formatAdmin(updatedAdmin),
+    });
   }
 
   @Delete(':id')
   async remove(@UUIDParam() id: string) {
-    return await this.adminsService.softDelete(id); // Soft delete
+    await this.adminsService.softDelete(id);
+    return this.responseService.success('Admin soft deleted successfully');
+  }
+
+  @Patch('/restore/:id')
+  async restore(@Param('id', ParseUUIDPipe) id: string) {
+    const restoredAdmin = await this.adminsService.restore(id);
+    return this.responseService.success('Admin restored successfully', {
+      admin: this.formatAdmin(restoredAdmin),
+    });
   }
 
   @Delete('/hard-delete/:id')
   async hardDelete(@UUIDParam() id: string) {
-    return await this.adminsService.hardDelete(id); // Hard delete
-  }
-
-  @Post('/restore/:id')
-  async restore(@UUIDParam() id: string) {
-    return await this.adminsService.restore(id); // Restore soft-deleted admin
+    await this.adminsService.hardDelete(id);
+    return this.responseService.success('Admin hard deleted successfully');
   }
 
   @Post('/super-admins')
   async createSuperAdmin(@Body() createSuperAdminDto: CreateSuperAdminDto) {
-    return await this.adminsService.createSuperAdmin(createSuperAdminDto);
+    const superAdmin =
+      await this.adminsService.createSuperAdmin(createSuperAdminDto);
+    return this.responseService.success('Super Admin created successfully', {
+      admin: this.formatAdmin(superAdmin),
+    });
   }
 
   @Patch('/super-admins/:id')
@@ -70,6 +95,21 @@ export class AdminsController {
     @UUIDParam() id: string,
     @Body() updateSuperAdminDto: UpdateSuperAdminDto,
   ) {
-    return await this.adminsService.updateSuperAdmin(id, updateSuperAdminDto);
+    const updatedSuperAdmin = await this.adminsService.update(
+      id,
+      updateSuperAdminDto,
+    );
+    return this.responseService.success('Super Admin updated successfully', {
+      admin: this.formatAdmin(updatedSuperAdmin),
+    });
+  }
+
+  private formatAdmin(admin: Admin) {
+    return this.lodashService.omitKeys(admin, [
+      'password',
+      'password_changed_at',
+      'last_login_at',
+      'last_logout_at',
+    ]);
   }
 }
