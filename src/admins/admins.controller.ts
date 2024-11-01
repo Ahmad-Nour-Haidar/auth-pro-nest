@@ -11,8 +11,6 @@ import {
 import { AdminsService } from './admins.service';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { UpdateAdminDto } from './dto/update-admin.dto';
-import { CreateSuperAdminDto } from './dto/create-super-admin.dto';
-import { UpdateSuperAdminDto } from './dto/update-super-admin.dto';
 import { UUIDParam } from '../common/decorators/uuid-param.decorator';
 import { LodashService } from '../common/services/lodash.service';
 import { ResponseService } from '../common/services/response.service';
@@ -79,29 +77,6 @@ export class AdminsController {
   async hardDelete(@UUIDParam() id: string) {
     await this.adminsService.hardDelete(id);
     return this.responseService.success('Admin hard deleted successfully');
-  }
-
-  @Post('/super-admins')
-  async createSuperAdmin(@Body() createSuperAdminDto: CreateSuperAdminDto) {
-    const superAdmin =
-      await this.adminsService.createSuperAdmin(createSuperAdminDto);
-    return this.responseService.success('Super Admin created successfully', {
-      admin: this.formatAdmin(superAdmin),
-    });
-  }
-
-  @Patch('/super-admins/:id')
-  async updateSuperAdmin(
-    @UUIDParam() id: string,
-    @Body() updateSuperAdminDto: UpdateSuperAdminDto,
-  ) {
-    const updatedSuperAdmin = await this.adminsService.update(
-      id,
-      updateSuperAdminDto,
-    );
-    return this.responseService.success('Super Admin updated successfully', {
-      admin: this.formatAdmin(updatedSuperAdmin),
-    });
   }
 
   private formatAdmin(admin: Admin) {

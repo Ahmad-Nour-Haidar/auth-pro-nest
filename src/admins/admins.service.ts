@@ -6,8 +6,8 @@ import {
 } from '@nestjs/common';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { UpdateAdminDto } from './dto/update-admin.dto';
-import { CreateSuperAdminDto } from './dto/create-super-admin.dto';
-import { UpdateSuperAdminDto } from './dto/update-super-admin.dto';
+import { CreateSuperAdminDto } from '../super-admins/dto/create-super-admin.dto';
+import { UpdateSuperAdminDto } from '../super-admins/dto/update-super-admin.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { BcryptService } from '../common/services/bcrypt.service';
@@ -121,21 +121,18 @@ export class AdminsService {
     return this.adminRepository.remove(admin);
   }
 
-  async createSuperAdmin(
-    createSuperAdminDto: CreateSuperAdminDto,
-  ): Promise<Admin> {
-    return this.create({ ...createSuperAdminDto, roles: [Roles.SuperAdmin] });
-  }
-
-  async updateSuperAdmin(
-    id: string,
-    updateSuperAdminDto: UpdateSuperAdminDto,
-  ): Promise<Admin> {
-    delete updateSuperAdminDto.access_password;
-    return this.update(id, {
-      ...updateSuperAdminDto,
-    });
-  }
+  // async createSuperAdmin(
+  //   createSuperAdminDto: CreateSuperAdminDto,
+  // ): Promise<Admin> {
+  //   return this.create({ ...createSuperAdminDto, roles: [Roles.SuperAdmin] });
+  // }
+  //
+  // async updateSuperAdmin(
+  //   id: string,
+  //   updateSuperAdminDto: UpdateSuperAdminDto,
+  // ): Promise<Admin> {
+  //   return this.update(id, updateSuperAdminDto);
+  // }
 
   private async getAdminById(id: string): Promise<Admin> {
     const admin = await this.adminRepository.findOneBy({ id });

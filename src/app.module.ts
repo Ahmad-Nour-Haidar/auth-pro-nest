@@ -9,6 +9,7 @@ import { validate } from './config/env.validation';
 import { LoggerMiddleware } from './middleware/logger.middleware';
 import { AdminsModule } from './admins/admins.module';
 import { UtilitiesModule } from './utilities/utilities.module';
+import { SuperAdminsModule } from './super-admins/super-admins.module';
 
 @Module({
   imports: [
@@ -59,6 +60,7 @@ import { UtilitiesModule } from './utilities/utilities.module';
     AuthModule,
     AdminsModule,
     UtilitiesModule,
+    SuperAdminsModule,
   ],
 })
 export class AppModule implements NestModule {
