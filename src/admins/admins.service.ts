@@ -6,19 +6,16 @@ import {
 } from '@nestjs/common';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { UpdateAdminDto } from './dto/update-admin.dto';
-import { CreateSuperAdminDto } from '../super-admins/dto/create-super-admin.dto';
-import { UpdateSuperAdminDto } from '../super-admins/dto/update-super-admin.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { BcryptService } from '../common/services/bcrypt.service';
 import { Admin } from './entities/admin.entity';
-import { Roles } from './enums/roles.enum';
 
 @Injectable()
 export class AdminsService {
   constructor(
     @InjectRepository(Admin)
-    private readonly adminRepository: Repository<Admin>,
+    private readonly adminsRepository: Repository<Admin>,
     private readonly bcryptService: BcryptService,
   ) {}
 
@@ -31,13 +28,13 @@ export class AdminsService {
       createAdminDto.password,
     );
 
-    const admin = this.adminRepository.create(createAdminDto);
+    const admin = this.adminsRepository.create(createAdminDto);
 
-    return this.adminRepository.save(admin);
+    return this.adminsRepository.save(admin);
   }
 
   findAll(): Promise<Admin[]> {
-    return this.adminRepository.find();
+    return this.adminsRepository.find();
   }
 
   async findOne(id: string): Promise<Admin> {
@@ -61,7 +58,7 @@ export class AdminsService {
     }
 
     try {
-      await this.adminRepository.update({ id }, updateAdminDto);
+      await this.adminsRepository.update({ id }, updateAdminDto);
     } catch (error) {
       if (error.code === '23505') {
         // Unique constraint violation error code for PostgreSQL
@@ -81,12 +78,12 @@ export class AdminsService {
   async softDelete(id: string): Promise<Admin> {
     const admin = await this.getAdminById(id);
     admin.deleted_at = new Date(); // Set the deleted_at field to mark as soft deleted
-    return this.adminRepository.save(admin);
+    return this.adminsRepository.save(admin);
   }
 
   async restore(id: string): Promise<Admin> {
     // Check if the admin exists and is soft deleted
-    const admin = await this.adminRepository.findOne({
+    const admin = await this.adminsRepository.findOne({
       where: { id },
       withDeleted: true, // includes soft-deleted records in the search
     });
@@ -104,7 +101,7 @@ export class AdminsService {
     }
 
     // Restore the admin
-    const result = await this.adminRepository.restore(id);
+    const result = await this.adminsRepository.restore(id);
 
     if (result.affected === 1) {
       admin.deleted_at = null;
@@ -118,24 +115,11 @@ export class AdminsService {
 
   async hardDelete(id: string): Promise<Admin> {
     const admin = await this.getAdminById(id);
-    return this.adminRepository.remove(admin);
+    return this.adminsRepository.remove(admin);
   }
 
-  // async createSuperAdmin(
-  //   createSuperAdminDto: CreateSuperAdminDto,
-  // ): Promise<Admin> {
-  //   return this.create({ ...createSuperAdminDto, roles: [Roles.SuperAdmin] });
-  // }
-  //
-  // async updateSuperAdmin(
-  //   id: string,
-  //   updateSuperAdminDto: UpdateSuperAdminDto,
-  // ): Promise<Admin> {
-  //   return this.update(id, updateSuperAdminDto);
-  // }
-
   private async getAdminById(id: string): Promise<Admin> {
-    const admin = await this.adminRepository.findOneBy({ id });
+    const admin = await this.adminsRepository.findOneBy({ id });
     if (!admin) {
       throw new NotFoundException(`Admin with ID ${id} not found`);
     }
@@ -145,7 +129,7 @@ export class AdminsService {
   private async checkForExistingAdmin(
     createAdminDto: CreateAdminDto,
   ): Promise<void> {
-    const existingAdmin = await this.adminRepository.findOne({
+    const existingAdmin = await this.adminsRepository.findOne({
       where: [
         { email: createAdminDto.email },
         { username: createAdminDto.username },

@@ -11,7 +11,7 @@ import {
 import { AdminsService } from './admins.service';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { UpdateAdminDto } from './dto/update-admin.dto';
-import { UUIDParam } from '../common/decorators/uuid-param.decorator';
+import { UUIDV4Param } from '../common/decorators/uuid-param.decorator';
 import { LodashService } from '../common/services/lodash.service';
 import { ResponseService } from '../common/services/response.service';
 import { Admin } from './entities/admin.entity';
@@ -41,7 +41,7 @@ export class AdminsController {
   }
 
   @Get(':id')
-  async findOne(@UUIDParam() id: string) {
+  async findOne(@UUIDV4Param() id: string) {
     const admin = await this.adminsService.findOne(id);
     return this.responseService.success('Admin retrieved successfully', {
       admin: this.formatAdmin(admin),
@@ -50,7 +50,7 @@ export class AdminsController {
 
   @Patch(':id')
   async update(
-    @UUIDParam() id: string,
+    @UUIDV4Param() id: string,
     @Body() updateAdminDto: UpdateAdminDto,
   ) {
     const updatedAdmin = await this.adminsService.update(id, updateAdminDto);
@@ -60,7 +60,7 @@ export class AdminsController {
   }
 
   @Delete(':id')
-  async remove(@UUIDParam() id: string) {
+  async remove(@UUIDV4Param() id: string) {
     await this.adminsService.softDelete(id);
     return this.responseService.success('Admin soft deleted successfully');
   }
@@ -74,7 +74,7 @@ export class AdminsController {
   }
 
   @Delete('/hard-delete/:id')
-  async hardDelete(@UUIDParam() id: string) {
+  async hardDelete(@UUIDV4Param() id: string) {
     await this.adminsService.hardDelete(id);
     return this.responseService.success('Admin hard deleted successfully');
   }

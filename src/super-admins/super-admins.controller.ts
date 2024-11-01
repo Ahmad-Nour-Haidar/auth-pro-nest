@@ -1,13 +1,13 @@
 import { Body, Controller, Patch, Post, UseGuards } from '@nestjs/common';
 import { AdminsService } from '../admins/admins.service';
 import { CreateSuperAdminDto } from './dto/create-super-admin.dto';
-import { UUIDParam } from '../common/decorators/uuid-param.decorator';
 import { UpdateSuperAdminDto } from './dto/update-super-admin.dto';
 import { ResponseService } from '../common/services/response.service';
 import { LodashService } from '../common/services/lodash.service';
 import { Roles } from '../admins/enums/roles.enum';
 import { SuperAdminAccessPassword } from './decorators/access-password.decorator';
 import { AccessPasswordGuard } from './guards/access-password.guard';
+import { UUIDV4Param } from '../common/decorators/uuid-param.decorator';
 
 @Controller('super-admins')
 @UseGuards(AccessPasswordGuard)
@@ -28,10 +28,11 @@ export class SuperAdminsController {
       'super-admin': this.formatAdmin(superAdmin),
     });
   }
+
   @SuperAdminAccessPassword()
   @Patch(':id')
   async updateSuperAdmin(
-    @UUIDParam() id: string,
+    @UUIDV4Param() id: string,
     @Body() updateSuperAdminDto: UpdateSuperAdminDto,
   ) {
     const updatedSuperAdmin = await this.adminsService.update(
