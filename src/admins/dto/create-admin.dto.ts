@@ -40,8 +40,8 @@ export class CreateAdminDto {
         'Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character',
     },
   )
-  @IsString({ message: 'Password must be a string' })
   @IsNotEmpty({ message: 'Password is required' })
+  @IsString({ message: 'Password must be a string' })
   password: string;
 
   @IsDefined({ message: 'Confirm password is required' })
@@ -51,8 +51,8 @@ export class CreateAdminDto {
   @ArrayNotContains([Roles.SuperAdmin], {
     message: 'SuperAdmin role is not allowed',
   })
-  @IsArray({ message: 'Roles must be an array' })
   @IsEnum(Roles, { each: true, message: 'Invalid role value' })
   @IsNotEmpty() // { message: 'Roles is required' }
+  @IsArray({ message: 'Roles must be an array' })
   readonly roles: Roles[];
 }

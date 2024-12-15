@@ -33,35 +33,22 @@ export class AdminsService {
     return this.adminsRepository.save(admin);
   }
 
-  findAll(): Promise<Admin[]> {
-    return this.adminsRepository.find();
+  async findAll(): Promise<Admin[]> {
+    return this.adminsRepository.find({ withDeleted: true });
   }
 
   async findOne(id: string): Promise<Admin> {
-    return this.getAdminById(id);
+    return this.getAdminById({ id });
   }
 
   async update(id: string, updateAdminDto: UpdateAdminDto): Promise<Admin> {
-    const admin = await this.getAdminById(id);
-
-    // Check if the update data is identical to the existing data for unique fields
-    if (admin.email === updateAdminDto.email) {
-      delete updateAdminDto.email;
-    }
-    if (admin.username === updateAdminDto.username) {
-      delete updateAdminDto.username;
-    }
-
-    // If there is no data left to update, return the existing admin
-    if (Object.keys(updateAdminDto).length === 0) {
-      return admin;
-    }
-
     try {
       await this.adminsRepository.update({ id }, updateAdminDto);
+
+      return await this.getAdminById({ id });
     } catch (error) {
       if (error.code === '23505') {
-        // Unique constraint violation error code for PostgreSQL
+        // Unique constraint violation error code for PostgresSQL
         if (error.detail.includes('email')) {
           throw new ConflictException('Email already in use');
         }
@@ -71,33 +58,25 @@ export class AdminsService {
       }
       throw error; // Re-throw the error if it's not a unique constraint violation
     }
-
-    return { ...admin, ...updateAdminDto };
   }
 
   async softDelete(id: string): Promise<Admin> {
-    const admin = await this.getAdminById(id);
-    admin.deleted_at = new Date(); // Set the deleted_at field to mark as soft deleted
+    const admin = await this.getAdminById({ id, withDeleted: true });
+    if (admin.deleted_at) {
+      throw new ConflictException(
+        `Admin with ID ${id} is already soft-deleted`,
+      );
+    }
+    admin.deleted_at = new Date();
     return this.adminsRepository.save(admin);
   }
 
   async restore(id: string): Promise<Admin> {
     // Check if the admin exists and is soft deleted
-    const admin = await this.adminsRepository.findOne({
-      where: { id },
-      withDeleted: true, // includes soft-deleted records in the search
-    });
-
-    if (!admin) {
-      throw new NotFoundException(
-        `Admin with ID ${id} not found or not soft deleted`,
-      );
-    }
+    const admin = await this.getAdminById({ id, withDeleted: true });
 
     if (!admin.deleted_at) {
-      throw new ConflictException(
-        `Admin with ID ${id} is not soft deleted and cannot be restored`,
-      );
+      throw new ConflictException(`Admin with ID ${id} is not soft deleted`);
     }
 
     // Restore the admin
@@ -114,16 +93,27 @@ export class AdminsService {
   }
 
   async hardDelete(id: string): Promise<Admin> {
-    const admin = await this.getAdminById(id);
+    const admin = await this.getAdminById({ id });
     return this.adminsRepository.remove(admin);
   }
 
-  private async getAdminById(id: string): Promise<Admin> {
-    const admin = await this.adminsRepository.findOneBy({ id });
-    if (!admin) {
-      throw new NotFoundException(`Admin with ID ${id} not found`);
+  async blockAdmin(id: string): Promise<Admin> {
+    const admin = await this.getAdminById({ id, withDeleted: true });
+    if (admin.blocked_at) {
+      throw new ConflictException(`Admin with ID ${id} is already blocked`);
     }
-    return admin;
+    admin.blocked_at = new Date();
+
+    return this.adminsRepository.save(admin);
+  }
+
+  async unblockAdmin(id: string): Promise<Admin> {
+    const admin = await this.getAdminById({ id, withDeleted: true });
+    if (!admin.blocked_at) {
+      throw new ConflictException(`Admin with ID ${id} is not blocked`);
+    }
+    admin.blocked_at = null;
+    return this.adminsRepository.save(admin);
   }
 
   private async checkForExistingAdmin(
@@ -144,5 +134,22 @@ export class AdminsService {
         throw new ConflictException('Username already in use'); // Username conflict
       }
     }
+  }
+
+  private async getAdminById({
+    id,
+    withDeleted = true,
+  }: {
+    id: string;
+    withDeleted?: boolean;
+  }): Promise<Admin> {
+    const admin = await this.adminsRepository.findOne({
+      where: { id },
+      withDeleted: withDeleted, // Include soft-deleted records if true
+    });
+    if (!admin) {
+      throw new NotFoundException(`Admin with ID ${id} not found`);
+    }
+    return admin;
   }
 }
