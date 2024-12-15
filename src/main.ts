@@ -24,4 +24,4 @@ async function bootstrap() {
   Logger.log(`Application is running on PORT: ${port}`);
 }
 
-bootstrap();
+bootstrap().then((_) => {});
