@@ -12,15 +12,14 @@ import { AdminsService } from './admins.service';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { UpdateAdminDto } from './dto/update-admin.dto';
 import { UUIDV4Param } from '../common/decorators/uuid-param.decorator';
-import { LodashService } from '../common/services/lodash.service';
 import { ResponseService } from '../common/services/response.service';
-import { Admin } from './entities/admin.entity';
+import { transformToDto } from '../utilities/transform.util';
+import { AdminResponseDto } from './dto/admin-response.dto';
 
 @Controller('admins')
 export class AdminsController {
   constructor(
     private readonly adminsService: AdminsService,
-    private readonly lodashService: LodashService,
     private readonly responseService: ResponseService,
   ) {}
 
@@ -28,7 +27,7 @@ export class AdminsController {
   async create(@Body() createAdminDto: CreateAdminDto) {
     const admin = await this.adminsService.create(createAdminDto);
     return this.responseService.success('Admin created successfully', {
-      admin: this.formatAdmin(admin),
+      admin: transformToDto(AdminResponseDto, admin),
     });
   }
 
@@ -36,7 +35,7 @@ export class AdminsController {
   async findAll() {
     const admins = await this.adminsService.findAll();
     return this.responseService.success('Admins retrieved successfully', {
-      admins: admins.map((admin) => this.formatAdmin(admin)),
+      admins: admins.map((admin) => transformToDto(AdminResponseDto, admin)),
     });
   }
 
@@ -44,7 +43,7 @@ export class AdminsController {
   async findOne(@UUIDV4Param() id: string) {
     const admin = await this.adminsService.findOne(id);
     return this.responseService.success('Admin retrieved successfully', {
-      admin: this.formatAdmin(admin),
+      admin: transformToDto(AdminResponseDto, admin),
     });
   }
 
@@ -55,7 +54,7 @@ export class AdminsController {
   ) {
     const updatedAdmin = await this.adminsService.update(id, updateAdminDto);
     return this.responseService.success('Admin updated successfully', {
-      admin: this.formatAdmin(updatedAdmin),
+      admin: transformToDto(AdminResponseDto, updatedAdmin),
     });
   }
 
@@ -69,7 +68,7 @@ export class AdminsController {
   async restore(@Param('id', ParseUUIDPipe) id: string) {
     const restoredAdmin = await this.adminsService.restore(id);
     return this.responseService.success('Admin restored successfully', {
-      admin: this.formatAdmin(restoredAdmin),
+      admin: transformToDto(AdminResponseDto, restoredAdmin),
     });
   }
 
@@ -77,14 +76,5 @@ export class AdminsController {
   async hardDelete(@UUIDV4Param() id: string) {
     await this.adminsService.hardDelete(id);
     return this.responseService.success('Admin hard deleted successfully');
-  }
-
-  private formatAdmin(admin: Admin) {
-    return this.lodashService.omitKeys(admin, [
-      'password',
-      'password_changed_at',
-      'last_login_at',
-      'last_logout_at',
-    ]);
   }
 }
