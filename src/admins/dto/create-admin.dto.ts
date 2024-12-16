@@ -1,4 +1,5 @@
 import {
+  ArrayMinSize,
   ArrayNotContains,
   IsArray,
   IsDefined,
@@ -48,11 +49,15 @@ export class CreateAdminDto {
   @Match('password', { message: 'Passwords do not match' })
   confirm_password: string;
 
-  @ArrayNotContains([Roles.SuperAdmin], {
+  @IsEnum(Roles, {
+    each: true,
+    message: ({ value }) =>
+      `Invalid role value "${value}". Valid roles are: ${Object.values(Roles).join(', ')}`,
+  })
+  @ArrayNotContains([Roles.superAdmin, Roles.user], {
     message: 'SuperAdmin role is not allowed',
   })
-  @IsEnum(Roles, { each: true, message: 'Invalid role value' })
-  @IsNotEmpty() // { message: 'Roles is required' }
+  @ArrayMinSize(1, { message: 'Roles must have at least one role' })
   @IsArray({ message: 'Roles must be an array' })
   readonly roles: Roles[];
 }

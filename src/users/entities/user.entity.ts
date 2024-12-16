@@ -23,7 +23,7 @@ export class User {
   @Column({ nullable: true, type: 'varchar', length: 255 })
   full_name?: string;
 
-  @Column({ type: 'varchar', select: false })
+  @Column({ type: 'varchar' })
   password: string;
 
   @Column({
@@ -33,9 +33,6 @@ export class User {
     select: false,
   })
   create_method: CreateMethod;
-
-  @Column({ nullable: true, type: 'varchar', length: 255, select: false })
-  verify_code?: string;
 
   @CreateDateColumn({ type: 'timestamp' })
   created_at: Date;
@@ -49,15 +46,21 @@ export class User {
   @Column({ type: 'timestamp', nullable: true })
   blocked_at?: Date;
 
-  @Column({ type: 'timestamp', nullable: true, select: false })
+  @Column({ type: 'timestamp', nullable: true })
   password_changed_at?: Date;
 
-  @Column({ type: 'timestamp', nullable: true, select: false })
+  @Column({ type: 'timestamp', nullable: true })
   approved_at?: Date;
 
-  @Column({ type: 'timestamp', nullable: true, select: false })
+  @Column({ type: 'timestamp', nullable: true })
   last_login_at?: Date;
 
-  @Column({ type: 'timestamp', nullable: true, select: false })
+  @Column({ type: 'timestamp', nullable: true })
   last_logout_at?: Date;
+
+  @Column({ type: 'varchar', length: 6, nullable: true })
+  verify_code: string;
+
+  @Column({ type: 'timestamp', nullable: true })
+  verified_at?: Date;
 }

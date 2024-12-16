@@ -2,10 +2,11 @@ import { Body, Controller, Delete, Get, Patch, Post } from '@nestjs/common';
 import { AdminsService } from './admins.service';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { UpdateAdminDto } from './dto/update-admin.dto';
-import { AdminResponseDto } from './dto/admin-response.dto';
 import { UUIDV4Param } from '../common/decorators/uuid-param.decorator';
 import { ResponseService } from '../common/services/response.service';
 import { transformToDto } from '../utilities/transform.util';
+import { Roles } from './enums/roles.enum';
+import { AdminResponseDto } from './dto/admin-response.dto';
 
 @Controller('admins')
 export class AdminsController {
@@ -36,14 +37,22 @@ export class AdminsController {
   @Get()
   async findAll() {
     const admins = await this.adminsService.findAll();
+    const filteredAdmins = admins.filter(
+      (admin) => !admin.roles.includes(Roles.superAdmin),
+    );
     return this.responseService.success('Admins retrieved successfully', {
-      admins: admins.map((admin) => transformToDto(AdminResponseDto, admin)),
+      admins: filteredAdmins.map((admin) =>
+        transformToDto(AdminResponseDto, admin),
+      ),
     });
   }
 
   @Get(':id')
   async findOne(@UUIDV4Param() id: string) {
     const admin = await this.adminsService.findOne(id);
+    // if (admin.roles.includes(Roles.SuperAdmin)) {
+    //   throw new NotFoundException(`Admin with ID ${id} not found`);
+    // }
     return this.responseService.success('Admin retrieved successfully', {
       admin: transformToDto(AdminResponseDto, admin),
     });

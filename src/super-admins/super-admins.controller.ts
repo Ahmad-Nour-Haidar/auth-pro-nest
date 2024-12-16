@@ -3,8 +3,7 @@ import {
   Controller,
   Delete,
   Get,
-  Param,
-  ParseUUIDPipe,
+  NotFoundException,
   Patch,
   Post,
   UseGuards,
@@ -13,12 +12,12 @@ import { AdminsService } from '../admins/admins.service';
 import { CreateSuperAdminDto } from './dto/create-super-admin.dto';
 import { UpdateSuperAdminDto } from './dto/update-super-admin.dto';
 import { ResponseService } from '../common/services/response.service';
-import { Roles } from '../admins/enums/roles.enum';
+import { isSuperAdmin, Roles } from '../admins/enums/roles.enum';
 import { SuperAdminAccessPassword } from './decorators/access-password.decorator';
 import { AccessPasswordGuard } from './guards/access-password.guard';
 import { UUIDV4Param } from '../common/decorators/uuid-param.decorator';
 import { transformToDto } from '../utilities/transform.util';
-import { SuperAdminResponseDto } from './dto/super-admin-response.dto';
+import { AdminResponseDto } from '../admins/dto/admin-response.dto';
 
 @Controller('super-admins')
 @UseGuards(AccessPasswordGuard)
@@ -33,10 +32,10 @@ export class SuperAdminsController {
   async create(@Body() createSuperAdminDto: CreateSuperAdminDto) {
     const superAdmin = await this.adminsService.create({
       ...createSuperAdminDto,
-      roles: [Roles.SuperAdmin],
+      roles: [Roles.superAdmin],
     });
     return this.responseService.success('Super Admin created successfully', {
-      super_admin: transformToDto(SuperAdminResponseDto, superAdmin),
+      super_admin: transformToDto(AdminResponseDto, superAdmin),
     });
   }
 
@@ -50,16 +49,17 @@ export class SuperAdminsController {
       updateSuperAdminDto,
     );
     return this.responseService.success('Super Admin updated successfully', {
-      super_admin: transformToDto(SuperAdminResponseDto, updatedSuperAdmin),
+      super_admin: transformToDto(AdminResponseDto, updatedSuperAdmin),
     });
   }
 
   @Get()
   async findAll() {
-    const superAdmins = await this.adminsService.findAll();
+    const admins = await this.adminsService.findAll();
+    const superAdmins = admins.filter((admin) => isSuperAdmin(admin.roles));
     return this.responseService.success('Super Admins retrieved successfully', {
       super_admins: superAdmins.map((superAdmin) =>
-        transformToDto(SuperAdminResponseDto, superAdmin),
+        transformToDto(AdminResponseDto, superAdmin),
       ),
     });
   }
@@ -67,8 +67,11 @@ export class SuperAdminsController {
   @Get(':id')
   async findOne(@UUIDV4Param() id: string) {
     const superAdmin = await this.adminsService.findOne(id);
+    if (isSuperAdmin(superAdmin.roles)) {
+      throw new NotFoundException(`Super Admin with ID ${id} not found`);
+    }
     return this.responseService.success('Super Admin retrieved successfully', {
-      super_admin: transformToDto(SuperAdminResponseDto, superAdmin),
+      super_admin: transformToDto(AdminResponseDto, superAdmin),
     });
   }
 
@@ -78,16 +81,16 @@ export class SuperAdminsController {
     return this.responseService.success(
       'Super Admin soft deleted successfully',
       {
-        super_admin: transformToDto(SuperAdminResponseDto, deletedAdmin),
+        super_admin: transformToDto(AdminResponseDto, deletedAdmin),
       },
     );
   }
 
   @Patch('/restore/:id')
-  async restore(@Param('id', ParseUUIDPipe) id: string) {
+  async restore(@UUIDV4Param() id: string) {
     const restoredSuperAdmin = await this.adminsService.restore(id);
     return this.responseService.success('Super Admin restored successfully', {
-      super_admin: transformToDto(SuperAdminResponseDto, restoredSuperAdmin),
+      super_admin: transformToDto(AdminResponseDto, restoredSuperAdmin),
     });
   }
 
@@ -103,7 +106,7 @@ export class SuperAdminsController {
   async block(@UUIDV4Param() id: string) {
     const superAdmin = await this.adminsService.blockAdmin(id);
     return this.responseService.success('Super Admin blocked successfully', {
-      super_admin: transformToDto(SuperAdminResponseDto, superAdmin),
+      super_admin: transformToDto(AdminResponseDto, superAdmin),
     });
   }
 
@@ -111,7 +114,7 @@ export class SuperAdminsController {
   async unblock(@UUIDV4Param() id: string) {
     const updatedAdmin = await this.adminsService.unblockAdmin(id);
     return this.responseService.success('Super Admin unblocked successfully', {
-      super_admin: transformToDto(SuperAdminResponseDto, updatedAdmin),
+      super_admin: transformToDto(AdminResponseDto, updatedAdmin),
     });
   }
 }

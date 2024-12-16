@@ -1,4 +1,4 @@
-import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { Global, MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
@@ -8,9 +8,12 @@ import { UsersModule } from './users/users.module';
 import { validate } from './config/env.validation';
 import { LoggerMiddleware } from './middleware/logger.middleware';
 import { AdminsModule } from './admins/admins.module';
-import { UtilitiesModule } from './utilities/utilities.module';
 import { SuperAdminsModule } from './super-admins/super-admins.module';
+import { AdminsAuthModule } from './admins-auth/admins-auth.module';
+import { CommonModule } from './common/common.module';
+import { JwtStrategy } from './common/strategies/jwt.strategy';
 
+@Global()
 @Module({
   imports: [
     // Load environment variables
@@ -59,9 +62,12 @@ import { SuperAdminsModule } from './super-admins/super-admins.module';
     UsersModule,
     AuthModule,
     AdminsModule,
-    UtilitiesModule,
     SuperAdminsModule,
+    AdminsAuthModule,
+    CommonModule,
   ],
+  exports: [JwtModule],
+  providers: [JwtStrategy],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

@@ -29,6 +29,8 @@ npm install bcrypt speakeasy passport-jwt
 
 # Email Sending
 npm install nodemailer
+npm install @types/nodemailer --save-dev
+
 
 # Validation and Security
 npm install class-validator class-transformer
@@ -66,11 +68,12 @@ npm install --save-dev @types/uuid
 
 npm install lodash
 npm install --save-dev @types/lodash
+npm install @nestjs/passport passport passport-local @nestjs/jwt passport-jwt bcrypt
+
 
 // todo
  - in filter deleted at
-
-
-
+ - small the super admins controller
+ - refactor super admins controller to be in admins controller
 
 

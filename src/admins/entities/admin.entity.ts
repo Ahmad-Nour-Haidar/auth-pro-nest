@@ -22,13 +22,13 @@ export class Admin {
   @Column({ nullable: true, type: 'varchar', length: 255 })
   full_name?: string;
 
-  @Column({ type: 'enum', enum: Roles, array: true, default: [Roles.Admin] })
+  @Column({ type: 'enum', enum: Roles, array: true, default: [Roles.admin] })
   roles: Roles[];
 
-  @Column({ type: 'varchar', select: false })
+  @Column({ type: 'varchar' })
   password: string;
 
-  @Column({ type: 'timestamp', nullable: true, select: false })
+  @Column({ type: 'timestamp', nullable: true })
   password_changed_at?: Date;
 
   @Column({ type: 'varchar', nullable: true, length: 500 })
@@ -37,10 +37,10 @@ export class Admin {
   @Column({ type: 'varchar', nullable: true, length: 500 })
   cover_image?: string;
 
-  @Column({ type: 'timestamp', nullable: true, select: false })
+  @Column({ type: 'timestamp', nullable: true })
   last_login_at?: Date;
 
-  @Column({ type: 'timestamp', nullable: true, select: false })
+  @Column({ type: 'timestamp', nullable: true })
   last_logout_at?: Date;
 
   @CreateDateColumn({ type: 'timestamp' })
@@ -54,4 +54,10 @@ export class Admin {
 
   @Column({ type: 'timestamp', nullable: true })
   blocked_at?: Date;
+
+  @Column({ type: 'varchar', length: 6, nullable: true })
+  verify_code: string;
+
+  @Column({ type: 'timestamp', nullable: true })
+  verified_at?: Date;
 }

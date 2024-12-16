@@ -5,7 +5,7 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { ALLOWED_ROLES_KEY } from '../../common/decorators';
+import { ALLOWED_ROLES_KEY } from '../decorators';
 import { Roles } from '../../admins/enums/roles.enum';
 
 @Injectable()
