@@ -1,4 +1,12 @@
-import { Body, Controller, Delete, Get, Patch, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Patch,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { AdminsService } from './admins.service';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { UpdateAdminDto } from './dto/update-admin.dto';
@@ -7,6 +15,9 @@ import { ResponseService } from '../common/services/response.service';
 import { transformToDto } from '../utilities/transform.util';
 import { Roles } from './enums/roles.enum';
 import { AdminResponseDto } from './dto/admin-response.dto';
+import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import { CurrentAdmin } from '../common/decorators';
+import { Admin } from './entities/admin.entity';
 
 @Controller('admins')
 export class AdminsController {
@@ -47,12 +58,17 @@ export class AdminsController {
     });
   }
 
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  async me(@CurrentAdmin() admin: Admin) {
+    return this.responseService.success('msg', {
+      admin: transformToDto(AdminResponseDto, admin),
+    });
+  }
+
   @Get(':id')
   async findOne(@UUIDV4Param() id: string) {
     const admin = await this.adminsService.findOne(id);
-    // if (admin.roles.includes(Roles.SuperAdmin)) {
-    //   throw new NotFoundException(`Admin with ID ${id} not found`);
-    // }
     return this.responseService.success('Admin retrieved successfully', {
       admin: transformToDto(AdminResponseDto, admin),
     });
