@@ -21,10 +21,16 @@ export class AdminResponseDto {
   cover_image?: string;
 
   @Expose()
-  blocked_at?: Date; // Expose the blocked_at timestamp field
+  blocked_at?: Date;
 
   @Expose()
   deleted_at?: Date;
+
+  @Expose()
+  two_factor_secret?: string;
+
+  @Expose()
+  two_fa_enabled_at?: Date;
 
   @Expose()
   roles: Roles[];

@@ -60,4 +60,10 @@ export class Admin {
 
   @Column({ type: 'timestamp', nullable: true })
   verified_at?: Date;
+
+  @Column({ type: 'timestamp', nullable: true })
+  two_fa_enabled_at: Date;
+
+  @Column({ type: 'varchar', nullable: true })
+  two_factor_secret?: string;
 }
