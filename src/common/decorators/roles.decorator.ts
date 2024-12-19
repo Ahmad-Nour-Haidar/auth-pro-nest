@@ -3,7 +3,7 @@ import { Roles } from '../../admins/enums/roles.enum';
 
 export const ALLOWED_ROLES_KEY = 'roles';
 
-export const RolesDecorator = (...roles: Roles[]) =>
+export const AllowedRoles = (...roles: Roles[]) =>
   SetMetadata(ALLOWED_ROLES_KEY, roles);
 
 export const SuperAdminOnly = () =>

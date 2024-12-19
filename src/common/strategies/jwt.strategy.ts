@@ -36,7 +36,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     if (isUser(roles)) {
       const user = await this.usersService.findOne(id);
       this.validateEntity(user, iat, 'user');
-      console.log(user);
       return user; // Return validated user
     } else {
       const admin = await this.adminsService.findOne(id);
@@ -74,7 +73,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       );
     }
 
-    if (entityType === 'user' && !entity.verified_at) {
+    if (!entity.verified_at) {
       throw new ForbiddenException('This user account has not been verified.');
     }
 

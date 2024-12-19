@@ -18,7 +18,6 @@ export class MailService {
   });
 
   async sendMail(mailOptions: any): Promise<void> {
-    const info = await this.transporter.sendMail(mailOptions);
-    console.log('Message sent: ', info.messageId);
+    await this.transporter.sendMail(mailOptions);
   }
 }

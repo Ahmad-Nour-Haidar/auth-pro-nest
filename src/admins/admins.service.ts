@@ -7,9 +7,10 @@ import {
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { UpdateAdminDto } from './dto/update-admin.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { BcryptService } from '../common/services/bcrypt.service';
 import { Admin } from './entities/admin.entity';
+import { isSuperAdmin, Roles } from './enums/roles.enum';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class AdminsService {
@@ -34,7 +35,9 @@ export class AdminsService {
   }
 
   async findAll(): Promise<Admin[]> {
-    return this.adminsRepository.find({ withDeleted: true });
+    return this.adminsRepository.find({
+      withDeleted: true,
+    });
   }
 
   async findOne(id: string): Promise<Admin> {
@@ -42,10 +45,19 @@ export class AdminsService {
   }
 
   async update(id: string, updateAdminDto: UpdateAdminDto): Promise<Admin> {
+    const admin = await this.getAdminById({ id });
+
+    // Check if the target admin is a super admin
+    if (isSuperAdmin(admin.roles)) {
+      updateAdminDto = {
+        ...updateAdminDto,
+        roles: [Roles.superAdmin],
+      };
+    }
     try {
       await this.adminsRepository.update({ id }, updateAdminDto);
 
-      return await this.getAdminById({ id });
+      return { ...admin, ...updateAdminDto };
     } catch (error) {
       if (error.code === '23505') {
         // Unique constraint violation error code for PostgresSQL

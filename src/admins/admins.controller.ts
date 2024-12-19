@@ -13,13 +13,16 @@ import { UpdateAdminDto } from './dto/update-admin.dto';
 import { UUIDV4Param } from '../common/decorators/uuid-param.decorator';
 import { ResponseService } from '../common/services/response.service';
 import { transformToDto } from '../utilities/transform.util';
-import { Roles } from './enums/roles.enum';
 import { AdminResponseDto } from './dto/admin-response.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
-import { CurrentAdmin } from '../common/decorators';
+import { CurrentAdmin, SuperAdminOnly } from '../common/decorators';
 import { Admin } from './entities/admin.entity';
+import { RolesGuard } from '../common/guards/roles.guard';
+import { UpdateMeAdminDto } from './dto/update-me-admin.dto';
 
 @Controller('admins')
+@UseGuards(RolesGuard)
+@UseGuards(JwtAuthGuard)
 export class AdminsController {
   constructor(
     private readonly adminsService: AdminsService,
@@ -27,6 +30,7 @@ export class AdminsController {
   ) {}
 
   @Post()
+  @SuperAdminOnly()
   async create(@Body() createAdminDto: CreateAdminDto) {
     const admin = await this.adminsService.create(createAdminDto);
     return this.responseService.success('Admin created successfully', {
@@ -34,7 +38,22 @@ export class AdminsController {
     });
   }
 
+  @Patch('me')
+  async updateMe(
+    @CurrentAdmin() admin: Admin,
+    @Body() updateMeAdminDto: UpdateMeAdminDto,
+  ) {
+    const updatedAdmin = await this.adminsService.update(
+      admin.id,
+      updateMeAdminDto,
+    );
+    return this.responseService.success('msg', {
+      admin: transformToDto(AdminResponseDto, updatedAdmin),
+    });
+  }
+
   @Patch(':id')
+  @SuperAdminOnly()
   async update(
     @UUIDV4Param() id: string,
     @Body() updateAdminDto: UpdateAdminDto,
@@ -46,20 +65,15 @@ export class AdminsController {
   }
 
   @Get()
+  @SuperAdminOnly()
   async findAll() {
     const admins = await this.adminsService.findAll();
-    const filteredAdmins = admins.filter(
-      (admin) => !admin.roles.includes(Roles.superAdmin),
-    );
     return this.responseService.success('Admins retrieved successfully', {
-      admins: filteredAdmins.map((admin) =>
-        transformToDto(AdminResponseDto, admin),
-      ),
+      admins: admins.map((admin) => transformToDto(AdminResponseDto, admin)),
     });
   }
 
   @Get('me')
-  @UseGuards(JwtAuthGuard)
   async me(@CurrentAdmin() admin: Admin) {
     return this.responseService.success('msg', {
       admin: transformToDto(AdminResponseDto, admin),
@@ -67,6 +81,7 @@ export class AdminsController {
   }
 
   @Get(':id')
+  @SuperAdminOnly()
   async findOne(@UUIDV4Param() id: string) {
     const admin = await this.adminsService.findOne(id);
     return this.responseService.success('Admin retrieved successfully', {
@@ -75,6 +90,7 @@ export class AdminsController {
   }
 
   @Delete(':id')
+  @SuperAdminOnly()
   async delete(@UUIDV4Param() id: string) {
     const deletedAdmin = await this.adminsService.softDelete(id);
     return this.responseService.success('Admin soft deleted successfully', {
@@ -83,6 +99,7 @@ export class AdminsController {
   }
 
   @Patch('/restore/:id')
+  @SuperAdminOnly()
   async restore(@UUIDV4Param() id: string) {
     const restoredSuperAdmin = await this.adminsService.restore(id);
     return this.responseService.success('Admin restored successfully', {
@@ -91,12 +108,14 @@ export class AdminsController {
   }
 
   @Delete('/hard-delete/:id')
+  @SuperAdminOnly()
   async hardDelete(@UUIDV4Param() id: string) {
     await this.adminsService.hardDelete(id);
     return this.responseService.success('Admin hard deleted successfully');
   }
 
   @Patch('/block/:id')
+  @SuperAdminOnly()
   async block(@UUIDV4Param() id: string) {
     const admin = await this.adminsService.blockAdmin(id);
     return this.responseService.success('Admin blocked successfully', {
@@ -105,6 +124,7 @@ export class AdminsController {
   }
 
   @Patch('/unblock/:id')
+  @SuperAdminOnly()
   async unblock(@UUIDV4Param() id: string) {
     const updatedAdmin = await this.adminsService.unblockAdmin(id);
     return this.responseService.success('Admin unblocked successfully', {

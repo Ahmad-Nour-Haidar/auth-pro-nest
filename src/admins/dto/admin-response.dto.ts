@@ -1,4 +1,4 @@
-import { Exclude, Expose } from 'class-transformer';
+import { Expose } from 'class-transformer';
 import { Roles } from 'src/admins/enums/roles.enum';
 
 export class AdminResponseDto {
@@ -15,6 +15,12 @@ export class AdminResponseDto {
   full_name?: string;
 
   @Expose()
+  profile_image?: string;
+
+  @Expose()
+  cover_image?: string;
+
+  @Expose()
   blocked_at?: Date; // Expose the blocked_at timestamp field
 
   @Expose()
@@ -22,12 +28,6 @@ export class AdminResponseDto {
 
   @Expose()
   roles: Roles[];
-
-  @Exclude()
-  password?: string; // Ensure this is not included in the response
-
-  @Exclude()
-  confirm_password?: string;
 
   constructor(partial: Partial<AdminResponseDto>) {
     Object.assign(this, partial);
