@@ -31,10 +31,10 @@ export class Admin {
   @Column({ type: 'timestamp', nullable: true })
   password_changed_at?: Date;
 
-  @Column({ type: 'varchar', nullable: true, length: 500 })
+  @Column({ type: 'varchar', nullable: true })
   profile_image?: string;
 
-  @Column({ type: 'varchar', nullable: true, length: 500 })
+  @Column({ type: 'varchar', nullable: true })
   cover_image?: string;
 
   @Column({ type: 'timestamp', nullable: true })

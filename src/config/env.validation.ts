@@ -39,6 +39,12 @@ export class EnvironmentVariables {
 
   @IsBoolean()
   DB_SYNCHRONIZE: boolean;
+
+  @IsString()
+  GOOGLE_CLIENT_ID: string;
+
+  @IsString()
+  GOOGLE_CLIENT_SECRET: string;
 }
 
 // Validation function to ensure env values are properly validated

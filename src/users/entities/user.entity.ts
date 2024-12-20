@@ -8,6 +8,7 @@ import {
 } from 'typeorm';
 
 import { CreateMethod } from '../enums/create-method.enum';
+import { Roles } from '../../admins/enums/roles.enum';
 
 @Entity('users')
 export class User {
@@ -26,13 +27,17 @@ export class User {
   @Column({ type: 'varchar' })
   password: string;
 
-  @Column({
-    type: 'enum',
-    enum: CreateMethod,
-    default: CreateMethod.LocalEmail,
-    select: false,
-  })
-  create_method: CreateMethod;
+  @Column({ type: 'timestamp', nullable: true })
+  password_changed_at?: Date;
+
+  @Column({ type: 'timestamp', nullable: true })
+  approved_at?: Date;
+
+  @Column({ type: 'timestamp', nullable: true })
+  last_login_at?: Date;
+
+  @Column({ type: 'timestamp', nullable: true })
+  last_logout_at?: Date;
 
   @CreateDateColumn({ type: 'timestamp' })
   created_at: Date;
@@ -46,21 +51,31 @@ export class User {
   @Column({ type: 'timestamp', nullable: true })
   blocked_at?: Date;
 
-  @Column({ type: 'timestamp', nullable: true })
-  password_changed_at?: Date;
-
-  @Column({ type: 'timestamp', nullable: true })
-  approved_at?: Date;
-
-  @Column({ type: 'timestamp', nullable: true })
-  last_login_at?: Date;
-
-  @Column({ type: 'timestamp', nullable: true })
-  last_logout_at?: Date;
-
   @Column({ type: 'varchar', length: 6, nullable: true })
   verify_code: string;
 
   @Column({ type: 'timestamp', nullable: true })
   verified_at?: Date;
+
+  @Column({ type: 'timestamp', nullable: true })
+  two_fa_enabled_at: Date;
+
+  @Column({ type: 'varchar', nullable: true })
+  two_factor_secret?: string;
+
+  @Column({ type: 'varchar', nullable: true })
+  profile_image?: string;
+
+  @Column({ type: 'varchar', nullable: true })
+  cover_image?: string;
+
+  @Column({
+    type: 'enum',
+    enum: CreateMethod,
+    default: CreateMethod.localEmail,
+  })
+  create_method: CreateMethod;
+
+  @Column({ type: 'enum', enum: Roles, array: true, default: [Roles.user] })
+  roles: Roles[];
 }

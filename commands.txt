@@ -73,7 +73,8 @@ npm install @nestjs/passport passport passport-local @nestjs/jwt passport-jwt bc
 
 // todo
  - in filter deleted at
- - small the super admins controller
- - refactor super admins controller to be in admins controller
+ - login username or email
+ - fix me - update me
+ - verify 2fa
 
 

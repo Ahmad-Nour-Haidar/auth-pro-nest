@@ -1,16 +1,17 @@
 import {
   ConflictException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { UpdateUserRolesDto } from './dto/update-user-roles.dto';
-import { User } from './entities/user.entity';
-import { CreateMethod } from './enums/create-method.enum';
+import { InjectRepository } from '@nestjs/typeorm';
 import { BcryptService } from '../common/services/bcrypt.service';
+import { User } from './entities/user.entity';
+import { Repository } from 'typeorm';
+import { AdditionalDataToCreateUser } from './types/additional-data-to-create-user';
+import { Roles } from '../admins/enums/roles.enum';
 
 @Injectable()
 export class UsersService {
@@ -22,9 +23,108 @@ export class UsersService {
 
   async create(
     createUserDto: CreateUserDto,
-    createMethod: CreateMethod,
+    additionalDataToCreateUser: AdditionalDataToCreateUser,
   ): Promise<User> {
     // Check if the email or username already exists
+    await this.checkForExistingUser(createUserDto);
+
+    // Hash the password
+    createUserDto.password = await this.bcryptService.hash(
+      createUserDto.password,
+    );
+
+    const user = this.usersRepository.create({
+      ...createUserDto,
+      ...additionalDataToCreateUser,
+      roles: [Roles.user],
+    });
+
+    return this.usersRepository.save(user);
+  }
+
+  async findAll(): Promise<User[]> {
+    return this.usersRepository.find({
+      withDeleted: true,
+    });
+  }
+
+  async findOne(id: string): Promise<User> {
+    return this.getUserById({ id });
+  }
+
+  async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
+    try {
+      await this.usersRepository.update({ id }, updateUserDto);
+      return this.getUserById({ id });
+    } catch (error) {
+      if (error.code === '23505') {
+        // Unique constraint violation error code for PostgresSQL
+        if (error.detail.includes('email')) {
+          throw new ConflictException('Email already in use');
+        }
+        if (error.detail.includes('username')) {
+          throw new ConflictException('Username already in use');
+        }
+      }
+      throw error; // Re-throw the error if it's not a unique constraint violation
+    }
+  }
+
+  async softDelete(id: string): Promise<User> {
+    const user = await this.getUserById({ id, withDeleted: true });
+    if (user.deleted_at) {
+      throw new ConflictException(`User with ID ${id} is already soft-deleted`);
+    }
+    user.deleted_at = new Date();
+    return this.usersRepository.save(user);
+  }
+
+  async restore(id: string): Promise<User> {
+    const user = await this.getUserById({ id, withDeleted: true });
+
+    if (!user.deleted_at) {
+      throw new ConflictException(`User with ID ${id} is not soft deleted`);
+    }
+
+    const result = await this.usersRepository.restore(id);
+
+    if (result.affected === 1) {
+      user.deleted_at = null;
+      return user;
+    } else {
+      throw new InternalServerErrorException(
+        `User with ID ${id} could not be restored due to a database error`,
+      );
+    }
+  }
+
+  async hardDelete(id: string): Promise<User> {
+    const user = await this.getUserById({ id });
+    return this.usersRepository.remove(user);
+  }
+
+  async blockUser(id: string): Promise<User> {
+    const user = await this.getUserById({ id, withDeleted: true });
+    if (user.blocked_at) {
+      throw new ConflictException(`User with ID ${id} is already blocked`);
+    }
+    user.blocked_at = new Date();
+
+    return this.usersRepository.save(user);
+  }
+
+  async unblockUser(id: string): Promise<User> {
+    const user = await this.getUserById({ id, withDeleted: true });
+    if (!user.blocked_at) {
+      throw new ConflictException(`User with ID ${id} is not blocked`);
+    }
+    user.blocked_at = null;
+    return this.usersRepository.save(user);
+  }
+
+  private async checkForExistingUser(
+    createUserDto: CreateUserDto,
+  ): Promise<void> {
     const existingUser = await this.usersRepository.findOne({
       where: [
         { email: createUserDto.email },
@@ -32,101 +132,31 @@ export class UsersService {
       ],
     });
 
-    // If the user exists, throw a conflict exception with a specific message
     if (existingUser) {
       if (existingUser.email === createUserDto.email) {
-        throw new ConflictException('Email already exists'); // Email conflict
+        throw new ConflictException('Email already in use'); // Email conflict
       }
       if (existingUser.username === createUserDto.username) {
-        throw new ConflictException('Username already exists'); // Username conflict
+        throw new ConflictException('Username already in use'); // Username conflict
       }
     }
-
-    // Hash the password
-    createUserDto.password = await this.bcryptService.hash(
-      createUserDto.password,
-    );
-    console.log(createUserDto);
-    // Create the user object with the hashed password
-    const user = this.usersRepository.create({
-      ...createUserDto,
-      create_method: createMethod,
-    });
-
-    return await this.usersRepository.save(user);
   }
 
-  async findAll() {
-    return await this.usersRepository.find();
-  }
-
-  async findOne(id: string) {
-    const user = await this.usersRepository.findOneBy({ id });
-    if (!user) throw new NotFoundException(`User with ID ${id} not found`);
-    return user;
-  }
-
-  async update(id: string, updateUserDto: UpdateUserDto) {
-    // Retrieve the existing user
-    const user = await this.usersRepository.findOneBy({ id });
-
-    if (!user) throw new NotFoundException(`User with ID ${id} not found`);
-
-    // Check if the update data is identical to the existing data for unique fields
-    if (user.email === updateUserDto.email) {
-      delete updateUserDto.email;
-    }
-    if (user.username === updateUserDto.username) {
-      delete updateUserDto.username;
-    }
-
-    // If there is no data left to update, return the existing user
-    if (Object.keys(updateUserDto).length === 0) {
-      return user;
-    }
-
-    await this.usersRepository.update({ id }, updateUserDto);
-
-    return { ...user, ...updateUserDto };
-  }
-
-  async updateRoles(id: string, updateUserRolesDto: UpdateUserRolesDto) {
-    // Retrieve the existing user
-    const user = await this.usersRepository.findOneBy({ id });
-
-    if (!user) throw new NotFoundException(`User with ID ${id} not found`);
-    return await this.usersRepository.save(user);
-  }
-
-  async softDelete(id: string) {
-    const user = await this.usersRepository.findOne({ where: { id } });
-    if (!user) throw new NotFoundException(`User with ID ${id} not found`);
-    user.deleted_at = new Date();
-    return await this.usersRepository.save(user);
-  }
-
-  async restore(id: string) {
-    // Check if the user exists and is soft deleted
+  private async getUserById({
+    id,
+    withDeleted = true,
+  }: {
+    id: string;
+    withDeleted?: boolean;
+  }): Promise<User> {
+    // await this.usersRepository.findOneBy({ id }, { withDeleted: true });
     const user = await this.usersRepository.findOne({
       where: { id },
-      withDeleted: true, // includes soft-deleted records in the search
+      withDeleted: withDeleted,
     });
-
-    if (!user || !user.deleted_at) {
-      throw new NotFoundException(
-        `User with ID ${id} not found or not deleted`,
-      );
+    if (!user) {
+      throw new NotFoundException(`User with ID ${id} not found`);
     }
-
-    // Restore the user
-    await this.usersRepository.restore(id);
-
-    return { message: `User with ID ${id} has been restored` };
-  }
-
-  async hardDelete(id: string) {
-    const user = await this.usersRepository.findOne({ where: { id } });
-    if (!user) throw new NotFoundException(`User with ID ${id} not found`);
-    return await this.usersRepository.remove(user);
+    return user;
   }
 }
