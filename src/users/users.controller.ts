@@ -9,14 +9,12 @@ import {
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UsersService } from './users.service';
-import { CreateMethod } from './enums/create-method.enum';
 import { CurrentUser, SuperAdminOnly } from '../common/decorators';
 import { transformToDto } from '../utilities/transform.util';
 import { UUIDV4Param } from '../common/decorators/uuid-param.decorator';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { ResponseService } from '../common/services/response.service';
-import { Roles } from '../admins/enums/roles.enum';
 import { User } from './entities/user.entity';
 import { UserResponseDto } from './dto/user-response.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -33,9 +31,7 @@ export class UsersController {
   @Post()
   @SuperAdminOnly()
   async create(@Body() createUserDto: CreateUserDto) {
-    const user = await this.usersService.create(createUserDto, {
-      create_method: CreateMethod.localEmail,
-    });
+    const user = await this.usersService.create(createUserDto);
     return this.responseService.success('User created successfully', {
       admin: transformToDto(UserResponseDto, user),
     });

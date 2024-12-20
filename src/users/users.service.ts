@@ -10,8 +10,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { BcryptService } from '../common/services/bcrypt.service';
 import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
-import { AdditionalDataToCreateUser } from './types/additional-data-to-create-user';
 import { Roles } from '../admins/enums/roles.enum';
+import { CreateMethod } from './enums/create-method.enum';
 
 @Injectable()
 export class UsersService {
@@ -21,10 +21,7 @@ export class UsersService {
     private readonly bcryptService: BcryptService,
   ) {}
 
-  async create(
-    createUserDto: CreateUserDto,
-    additionalDataToCreateUser: AdditionalDataToCreateUser,
-  ): Promise<User> {
+  async create(createUserDto: CreateUserDto): Promise<User> {
     // Check if the email or username already exists
     await this.checkForExistingUser(createUserDto);
 
@@ -35,7 +32,7 @@ export class UsersService {
 
     const user = this.usersRepository.create({
       ...createUserDto,
-      ...additionalDataToCreateUser,
+      create_method: CreateMethod.localEmail,
       roles: [Roles.user],
     });
 
@@ -122,9 +119,7 @@ export class UsersService {
     return this.usersRepository.save(user);
   }
 
-  private async checkForExistingUser(
-    createUserDto: CreateUserDto,
-  ): Promise<void> {
+  async checkForExistingUser(createUserDto: CreateUserDto): Promise<void> {
     const existingUser = await this.usersRepository.findOne({
       where: [
         { email: createUserDto.email },

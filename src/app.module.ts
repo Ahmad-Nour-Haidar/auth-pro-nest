@@ -1,5 +1,4 @@
 import { Global, MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
-import { AuthModule } from './auth/auth.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -12,6 +11,7 @@ import { SuperAdminsModule } from './super-admins/super-admins.module';
 import { AdminsAuthModule } from './admins-auth/admins-auth.module';
 import { CommonModule } from './common/common.module';
 import { JwtStrategy } from './common/strategies/jwt.strategy';
+import { UsersAuthModule } from './users-auth/users-auth.module';
 
 @Global()
 @Module({
@@ -59,11 +59,11 @@ import { JwtStrategy } from './common/strategies/jwt.strategy';
     ]),
 
     // Application modules
-    UsersModule,
-    AuthModule,
     AdminsModule,
     SuperAdminsModule,
     AdminsAuthModule,
+    UsersModule,
+    UsersAuthModule,
     CommonModule,
   ],
   exports: [JwtModule],

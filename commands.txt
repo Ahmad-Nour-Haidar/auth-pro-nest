@@ -76,5 +76,6 @@ npm install @nestjs/passport passport passport-local @nestjs/jwt passport-jwt bc
  - login username or email
  - fix me - update me
  - verify 2fa
+ - method return verify code
 
 

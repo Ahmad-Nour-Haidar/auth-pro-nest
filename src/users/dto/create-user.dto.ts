@@ -1,20 +1,13 @@
 import {
-  ArrayMaxSize,
-  ArrayMinSize,
-  IsArray,
   IsDefined,
   IsEmail,
-  IsEnum,
   IsNotEmpty,
   IsOptional,
   IsString,
   Matches,
   MaxLength,
-  ValidateIf,
 } from 'class-validator';
-import { Roles } from '../../admins/enums/roles.enum';
 import { Match } from '../../common/decorators/match.decorator';
-import { CreateMethod } from '../enums/create-method.enum';
 
 export class CreateUserDto {
   @IsEmail({}, { message: 'Email must be a valid email address' })
@@ -50,15 +43,15 @@ export class CreateUserDto {
   @IsDefined({ message: 'Confirm password is required' })
   @Match('password', { message: 'Passwords do not match' })
   confirm_password: string;
-
-  // @ValidateIf((_) => false) // Skipping validation if not provided by the user
-  // @ArrayMinSize(1, { message: 'Roles must have at least one role' })
-  // @ArrayMaxSize(1, { message: 'Roles must not exceed one role' })
-  // @IsArray({ message: 'Roles must be an array' })
-  // @IsEnum(Roles, { each: true, message: 'Invalid role value' })
-  // readonly roles?: Roles[] = [Roles.user]; // Default value
-  //
-  // @ValidateIf((_) => false) // Skipping validation if not provided by the user
-  // @IsEnum(CreateMethod, { message: 'Invalid method' })
-  // readonly create_method: CreateMethod = CreateMethod.localEmail;
 }
+
+// @ValidateIf((_) => false) // Skipping validation if not provided by the user
+// @ArrayMinSize(1, { message: 'Roles must have at least one role' })
+// @ArrayMaxSize(1, { message: 'Roles must not exceed one role' })
+// @IsArray({ message: 'Roles must be an array' })
+// @IsEnum(Roles, { each: true, message: 'Invalid role value' })
+// readonly roles?: Roles[] = [Roles.user]; // Default value
+//
+// @ValidateIf((_) => false) // Skipping validation if not provided by the user
+// @IsEnum(CreateMethod, { message: 'Invalid method' })
+// readonly create_method: CreateMethod = CreateMethod.localEmail;
