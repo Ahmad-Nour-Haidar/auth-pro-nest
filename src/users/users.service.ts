@@ -12,6 +12,7 @@ import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import { Roles } from '../admins/enums/roles.enum';
 import { CreateMethod } from './enums/create-method.enum';
+import { MailService } from '../common/services/mail.service';
 
 @Injectable()
 export class UsersService {
@@ -19,6 +20,7 @@ export class UsersService {
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
     private readonly bcryptService: BcryptService,
+    private readonly mailService: MailService,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
@@ -30,10 +32,19 @@ export class UsersService {
       createUserDto.password,
     );
 
+    const verifyCode = this.mailService.getVerifyCode();
     const user = this.usersRepository.create({
       ...createUserDto,
+      verify_code: verifyCode,
       create_method: CreateMethod.localEmail,
       roles: [Roles.user],
+    });
+
+    await this.mailService.sendMail({
+      username: user.username,
+      to: user.email,
+      subject: 'Verification Code',
+      text: `Your verification code is: ${verifyCode}`,
     });
 
     return this.usersRepository.save(user);

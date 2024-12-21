@@ -1,20 +1,23 @@
+import { IsOptional } from 'class-validator';
 import {
-  IsString,
-  IsNotEmpty,
-  Length,
-  IsEmail,
-  MaxLength,
-} from 'class-validator';
+  IsValidCode6,
+  IsValidEmail,
+  IsValidUsername,
+} from '../validations/custom-validations';
+import { AnyOf } from '../validations/any-of';
 
+@AnyOf(['email', 'username'], {
+  message: 'Either email or username must be provided.',
+})
 export class LoginWithOtpDto {
-  @IsEmail({}, { message: 'Email must be a valid email address' })
-  @MaxLength(255, { message: 'Email must not exceed 255 characters' })
-  @IsString({ message: 'Email must be a string' })
-  @IsNotEmpty({ message: 'Email is required' })
-  email: string;
+  @IsValidEmail()
+  @IsOptional()
+  email?: string;
 
-  @IsString()
-  @IsNotEmpty()
-  @Length(6, 6, { message: 'OTP code must be 6 digits' })
+  @IsValidUsername()
+  @IsOptional()
+  username?: string;
+
+  @IsValidCode6()
   code: string;
 }

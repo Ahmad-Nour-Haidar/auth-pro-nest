@@ -1,5 +1,6 @@
 import { Expose } from 'class-transformer';
 import { Roles } from 'src/admins/enums/roles.enum';
+import { CreateMethod } from '../enums/create-method.enum';
 
 export class UserResponseDto {
   @Expose()
@@ -15,6 +16,9 @@ export class UserResponseDto {
   full_name?: string;
 
   @Expose()
+  create_method: CreateMethod;
+
+  @Expose()
   profile_image?: string;
 
   @Expose()
@@ -27,10 +31,26 @@ export class UserResponseDto {
   deleted_at?: Date;
 
   @Expose()
-  two_factor_secret?: string;
+  password_changed_at?: Date;
+
+  @Expose()
+  last_login_at?: Date;
+
+  @Expose()
+  last_logout_at?: Date;
+
+  @Expose()
+  verified_at?: Date;
 
   @Expose()
   two_fa_enabled_at?: Date;
+
+  @Expose()
+  two_factor_verified_at?: Date;
+
+  @Expose() created_at: Date;
+
+  @Expose() updated_at: Date;
 
   @Expose()
   roles: Roles[];

@@ -18,6 +18,7 @@ import { ResponseService } from '../common/services/response.service';
 import { User } from './entities/user.entity';
 import { UserResponseDto } from './dto/user-response.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { LodashService } from '../common/services/lodash.service';
 
 @Controller('users')
 @UseGuards(RolesGuard)
@@ -26,6 +27,7 @@ export class UsersController {
   constructor(
     private readonly usersService: UsersService,
     private readonly responseService: ResponseService,
+    private readonly lodashService: LodashService,
   ) {}
 
   @Post()
@@ -33,7 +35,7 @@ export class UsersController {
   async create(@Body() createUserDto: CreateUserDto) {
     const user = await this.usersService.create(createUserDto);
     return this.responseService.success('User created successfully', {
-      admin: transformToDto(UserResponseDto, user),
+      user: transformToDto(UserResponseDto, user),
     });
   }
 
@@ -44,7 +46,12 @@ export class UsersController {
   ) {
     const updatedUser = await this.usersService.update(user.id, updateUserDto);
     return this.responseService.success('msg', {
-      admin: transformToDto(UserResponseDto, updatedUser),
+      user: this.lodashService.omitKeys(updatedUser, [
+        'password',
+        'password_changed_at',
+        'verify_code',
+        'roles',
+      ]),
     });
   }
 
@@ -56,7 +63,7 @@ export class UsersController {
   ) {
     const updatedUser = await this.usersService.update(id, updateUserDto);
     return this.responseService.success('User updated successfully', {
-      admin: transformToDto(UserResponseDto, updatedUser),
+      user: transformToDto(UserResponseDto, updatedUser),
     });
   }
 
@@ -72,7 +79,12 @@ export class UsersController {
   @Get('me')
   async me(@CurrentUser() user: User) {
     return this.responseService.success('msg', {
-      user: transformToDto(UserResponseDto, user),
+      user: this.lodashService.omitKeys(user, [
+        'password',
+        'password_changed_at',
+        'verify_code',
+        'roles',
+      ]),
     });
   }
 

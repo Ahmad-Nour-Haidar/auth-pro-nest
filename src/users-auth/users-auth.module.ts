@@ -4,11 +4,11 @@ import { UsersAuthService } from './users-auth.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserLocalStrategy } from './strategies/user-local.strategy';
 import { User } from '../users/entities/user.entity';
-import { UsersService } from '../users/users.service';
+import { UsersModule } from '../users/users.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User])],
+  imports: [TypeOrmModule.forFeature([User]), UsersModule],
   controllers: [UsersAuthController],
-  providers: [UsersAuthService, UserLocalStrategy, UsersService],
+  providers: [UsersAuthService, UserLocalStrategy],
 })
 export class UsersAuthModule {}

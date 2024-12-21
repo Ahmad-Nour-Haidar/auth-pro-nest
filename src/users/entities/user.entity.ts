@@ -31,9 +31,6 @@ export class User {
   password_changed_at?: Date;
 
   @Column({ type: 'timestamp', nullable: true })
-  approved_at?: Date;
-
-  @Column({ type: 'timestamp', nullable: true })
   last_login_at?: Date;
 
   @Column({ type: 'timestamp', nullable: true })
@@ -57,12 +54,6 @@ export class User {
   @Column({ type: 'timestamp', nullable: true })
   verified_at?: Date;
 
-  @Column({ type: 'timestamp', nullable: true })
-  two_fa_enabled_at: Date;
-
-  @Column({ type: 'varchar', nullable: true })
-  two_factor_secret?: string;
-
   @Column({ type: 'varchar', nullable: true })
   profile_image?: string;
 
@@ -75,6 +66,18 @@ export class User {
     default: CreateMethod.localEmail,
   })
   create_method: CreateMethod;
+
+  @Column({ type: 'timestamp', nullable: true })
+  two_fa_enabled_at: Date;
+
+  @Column({ type: 'varchar', nullable: true })
+  two_factor_secret?: string;
+
+  @Column({ type: 'timestamp', nullable: true })
+  two_factor_verified_at?: Date;
+
+  @Column({ type: 'varchar', nullable: true })
+  qr_code_image_url?: string;
 
   @Column({ type: 'enum', enum: Roles, array: true, default: [Roles.user] })
   roles: Roles[];

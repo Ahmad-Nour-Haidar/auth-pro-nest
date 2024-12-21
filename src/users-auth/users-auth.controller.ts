@@ -22,7 +22,9 @@ import { LoginWithOtpDto } from '../common/dto/login-with-otp.dto';
 import { User } from '../users/entities/user.entity';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { transformToDto } from '../utilities/transform.util';
-import { UserResponseDto } from '../users/dto/user-response.dto';
+import { UserAuthResponseDto } from './dto/user-auth-response.dto';
+
+// import { UserResponseDto } from '../users/dto/user-response.dto';
 
 @Controller('users-auth')
 export class UsersAuthController {
@@ -35,7 +37,7 @@ export class UsersAuthController {
   async register(@Body() registerUserDto: RegisterUserDto) {
     const user = await this.usersAuthService.register(registerUserDto);
     return this.responseService.success('msg', {
-      user: transformToDto(UserResponseDto, user),
+      user: transformToDto(UserAuthResponseDto, user),
     });
   }
 
@@ -50,14 +52,16 @@ export class UsersAuthController {
   @HttpCode(HttpStatus.OK)
   async checkEmail(@Body() checkEmailDto: CheckEmailDto) {
     await this.usersAuthService.checkEmail(checkEmailDto);
-    return this.responseService.success('msg verify code sent');
+    return this.responseService.success(
+      'msg email check success and we sent verify code ',
+    );
   }
 
   @Post('verify-code')
   @HttpCode(HttpStatus.OK)
   async verifyCode(@Body() verifyCodeDto: VerifyCodeDto) {
     await this.usersAuthService.verifyCode(verifyCodeDto);
-    return this.responseService.success('msg');
+    return this.responseService.success('verified success');
   }
 
   @Post('reset-password')
@@ -84,7 +88,7 @@ export class UsersAuthController {
     const result = await this.usersAuthService.enable2fa(user);
     return this.responseService.success(
       '2FA enabled successfully, please go and verify your Authenticator App',
-      { result },
+      { user: transformToDto(UserAuthResponseDto, result) },
     );
   }
 
@@ -92,16 +96,20 @@ export class UsersAuthController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   async verify2fa(@CurrentUser() user: User, @Body() otpCodeDto: OtpCodeDto) {
-    await this.usersAuthService.verify2fa(user, otpCodeDto);
-    return this.responseService.success('2FA verified successfully');
+    const result = await this.usersAuthService.verify2fa(user, otpCodeDto);
+    return this.responseService.success('2FA verified successfully', {
+      user: transformToDto(UserAuthResponseDto, result),
+    });
   }
 
   @Patch('disable-2fa')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   async disable2fa(@CurrentUser() user: User) {
-    await this.usersAuthService.disable2fa(user);
-    return this.responseService.success('2FA disabled successfully');
+    const result = await this.usersAuthService.disable2fa(user);
+    return this.responseService.success('2FA disabled successfully', {
+      user: transformToDto(UserAuthResponseDto, result),
+    });
   }
 
   @Post('login-with-otp')

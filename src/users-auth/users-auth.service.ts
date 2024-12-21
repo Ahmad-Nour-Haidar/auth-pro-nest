@@ -23,11 +23,11 @@ import { TwoFactorAuthService } from '../common/services/two-factor-auth.service
 import { OtpCodeDto } from '../common/dto/otp-code.dto';
 import { LoginWithOtpDto } from '../common/dto/login-with-otp.dto';
 import { User } from '../users/entities/user.entity';
-import { UserResponseDto } from '../users/dto/user-response.dto';
 import { Roles } from '../admins/enums/roles.enum';
 import { UsersService } from '../users/users.service';
 import { CreateMethod } from '../users/enums/create-method.enum';
 import { RegisterUserDto } from './dto/register-user.dto';
+import { UserAuthResponseDto } from './dto/user-auth-response.dto';
 
 @Injectable()
 export class UsersAuthService {
@@ -72,38 +72,20 @@ export class UsersAuthService {
   async login(loginDto: LoginUserDto) {
     const { email, password, username } = loginDto;
 
-    const user = await this.usersRepository.findOne({
-      where: [{ email }, { username }], // where - orWhere
+    const user = await this.getUserByEmailOrUsername({
+      email,
+      username,
     });
-    if (!user || !(await this.bcryptService.compare(password, user.password))) {
+
+    if (!(await this.bcryptService.compare(password, user.password))) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    if (user.deleted_at) {
-      throw new ForbiddenException('This account has been deleted.');
+    if (!user.verified_at) {
+      throw new ForbiddenException('This account has not been verified.');
     }
 
-    if (user.blocked_at) {
-      throw new ForbiddenException('This account has been blocked.');
-    }
-
-    if (!user.verify_code) {
-      user.verify_code = this.mailService.getVerifyCode();
-      await this.usersRepository.save(user);
-
-      // Send the verification code via email
-      await this.mailService.sendMail({
-        username: user.username,
-        to: user.email,
-        subject: 'Verification Code',
-        text: `Your verification code is: ${user.verify_code}`,
-      });
-      throw new ForbiddenException(
-        'This account has not been verified, we are sent the verify code.',
-      );
-    }
-
-    if (user.two_fa_enabled_at && user.two_factor_secret) {
+    if (user.two_factor_verified_at) {
       throw new HttpException(
         'Login successful. Two-Factor Authentication is enabled. Please log in using your OTP code.',
         HttpStatus.ACCEPTED,
@@ -117,25 +99,14 @@ export class UsersAuthService {
     const payload: JwtSignPayload = { id: user.id, roles: user.roles };
     const token: string = this.jwtService.sign(payload);
 
-    return { token, user: transformToDto(UserResponseDto, user) };
+    return { token, user: transformToDto(UserAuthResponseDto, user) };
   }
 
-  async checkEmail(checkEmailDto: CheckEmailDto): Promise<void> {
-    const user = await this.usersRepository.findOneBy({
+  async checkEmail(checkEmailDto: CheckEmailDto): Promise<User> {
+    const user = await this.getUserByEmailOrUsername({
       email: checkEmailDto.email,
+      username: checkEmailDto.username,
     });
-
-    if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
-
-    if (user.deleted_at) {
-      throw new ForbiddenException('This account has been deleted.');
-    }
-
-    if (user.blocked_at) {
-      throw new ForbiddenException('This account has been blocked.');
-    }
 
     user.verify_code = this.mailService.getVerifyCode();
     user.verified_at = null;
@@ -149,26 +120,16 @@ export class UsersAuthService {
       subject: 'Password Reset Verification Code',
       text: `Your verification code is: ${user.verify_code}`,
     });
+    return user;
   }
 
-  async verifyCode(verifyCodeDto: VerifyCodeDto) {
-    const { email, code } = verifyCodeDto;
+  async verifyCode(verifyCodeDto: VerifyCodeDto): Promise<User> {
+    const user = await this.getUserByEmailOrUsername({
+      email: verifyCodeDto.email,
+      username: verifyCodeDto.username,
+    });
 
-    const user = await this.usersRepository.findOneBy({ email });
-
-    if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
-
-    if (user.deleted_at) {
-      throw new ForbiddenException('This account has been deleted.');
-    }
-
-    if (user.blocked_at) {
-      throw new ForbiddenException('This account has been blocked.');
-    }
-
-    if (user.verify_code !== code) {
+    if (user.verify_code !== verifyCodeDto.code) {
       throw new BadRequestException('Invalid verification code');
     }
 
@@ -177,24 +138,12 @@ export class UsersAuthService {
     user.verify_code = null;
 
     await this.usersRepository.save(user);
-    return { user };
+    return user;
   }
 
-  async resetPassword(resetPasswordDto: ResetPasswordDto) {
-    const { code, email, password } = resetPasswordDto;
-    const user = await this.usersRepository.findOneBy({ email });
-
-    if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
-
-    if (user.deleted_at) {
-      throw new ForbiddenException('This account has been deleted.');
-    }
-
-    if (user.blocked_at) {
-      throw new ForbiddenException('This account has been blocked.');
-    }
+  async resetPassword(resetPasswordDto: ResetPasswordDto): Promise<User> {
+    const { code, email, password, username } = resetPasswordDto;
+    const user = await this.getUserByEmailOrUsername({ email, username });
 
     if (user.verify_code !== code) {
       throw new BadRequestException('Invalid verification code');
@@ -209,13 +158,13 @@ export class UsersAuthService {
     }
 
     await this.usersRepository.save(user);
-    return { user };
+    return user;
   }
 
   async changePassword(
     user: User,
     changePasswordDto: ChangePasswordDto,
-  ): Promise<void> {
+  ): Promise<User> {
     const isMatch = await this.bcryptService.compare(
       changePasswordDto.old_password,
       user.password,
@@ -228,21 +177,11 @@ export class UsersAuthService {
     user.password = await this.bcryptService.hash(changePasswordDto.password);
     user.password_changed_at = new Date();
 
-    await this.usersRepository.save(user);
+    return this.usersRepository.save(user);
   }
 
-  async validateUser(email: string, password: string): Promise<any> {
-    const user = await this.usersRepository.findOneBy({ email });
-    if (user && (await this.bcryptService.compare(password, user.password))) {
-      const { password, ...result } = user;
-      return result;
-    }
-    return null; // Return null if authentication fails
-  }
-
-  async enable2fa(user: User): Promise<any> {
-    if (user.two_fa_enabled_at && user.two_factor_secret) {
-      // 2FA is already enabled
+  async enable2fa(user: User): Promise<User> {
+    if (user.two_factor_verified_at) {
       throw new ConflictException(
         'Two-factor authentication is already enabled. If you want to reset it, please disable it first.',
       );
@@ -252,23 +191,25 @@ export class UsersAuthService {
 
     user.two_fa_enabled_at = new Date();
     user.two_factor_secret = secret.base32;
+    user.qr_code_image_url = await this.twoFactorAuthService.generateQRCode(
+      secret.otpauth_url,
+    );
 
     await this.usersRepository.save(user);
 
-    const generateQRCode = await this.twoFactorAuthService.generateQRCode(
-      secret.otpauth_url,
-    );
-    return {
-      secret: secret.base32,
-      qr_code_image_url: generateQRCode,
-    };
+    return user;
   }
 
-  async verify2fa(user: User, otpCodeDto: OtpCodeDto): Promise<void> {
+  async verify2fa(user: User, otpCodeDto: OtpCodeDto): Promise<User> {
     if (!user.two_fa_enabled_at || !user.two_factor_secret) {
       // 2FA setup is incomplete
       throw new ConflictException(
-        'Two-factor authentication setup is incomplete. Please complete the setup or contact support.',
+        'Two-factor authentication setup is incomplete. Disable and re-enable.',
+      );
+    }
+    if (user.two_factor_verified_at) {
+      throw new ConflictException(
+        'Two-factor authentication is already verified.',
       );
     }
 
@@ -280,10 +221,13 @@ export class UsersAuthService {
     if (!isValid) {
       throw new BadRequestException('Invalid 2FA code');
     }
+
+    user.two_factor_verified_at = new Date();
+    return this.usersRepository.save(user);
   }
 
   async disable2fa(user: User): Promise<User> {
-    if (!user.two_fa_enabled_at || !user.two_factor_secret) {
+    if (!user.two_factor_verified_at) {
       // 2FA setup is incomplete
       throw new ConflictException(
         'Two-factor authentication setup is incomplete or already disabled.',
@@ -292,16 +236,78 @@ export class UsersAuthService {
 
     await this.usersRepository.update(
       { id: user.id },
-      { two_factor_secret: null, two_fa_enabled_at: null },
+      {
+        two_factor_secret: null,
+        two_fa_enabled_at: null,
+        two_factor_verified_at: null,
+        qr_code_image_url: null,
+      },
     );
     user.two_factor_secret = null;
     user.two_fa_enabled_at = null;
+    user.two_factor_verified_at = null;
+    user.qr_code_image_url = null;
     return user;
   }
 
   async loginWithOtp(loginWithOtpDto: LoginWithOtpDto) {
-    const user = await this.usersRepository.findOneBy({
+    const user = await this.getUserByEmailOrUsername({
       email: loginWithOtpDto.email,
+      username: loginWithOtpDto.username,
+    });
+
+    if (!user.verified_at) {
+      throw new ForbiddenException(
+        'This account is not verified. Please complete the verification process.',
+      );
+    }
+
+    if (!user.two_factor_verified_at) {
+      throw new BadRequestException(
+        'Two-factor authentication (2FA) is not enabled for this account.',
+      );
+    }
+
+    const isValid = this.twoFactorAuthService.validateCode(
+      user.two_factor_secret,
+      loginWithOtpDto.code,
+    );
+
+    if (!isValid) {
+      throw new BadRequestException('Invalid 2FA code');
+    }
+
+    user.last_login_at = new Date();
+
+    await this.usersRepository.save(user);
+
+    const payload: JwtSignPayload = { id: user.id, roles: user.roles };
+    const token: string = this.jwtService.sign(payload);
+
+    return { token, user: transformToDto(UserAuthResponseDto, user) };
+  }
+
+  async validateUser(email: string, password: string): Promise<any> {
+    const user = await this.usersRepository.findOneBy({ email });
+    if (user && (await this.bcryptService.compare(password, user.password))) {
+      const { password, ...result } = user;
+      return result;
+    }
+    return null; // Return null if authentication fails
+  }
+
+  private async getUserByEmailOrUsername(identifier: {
+    email?: string;
+    username?: string;
+  }): Promise<User> {
+    const { email, username } = identifier;
+
+    if (!email && !username) {
+      throw new UnauthorizedException('Email or username must be provided.');
+    }
+
+    const user = await this.usersRepository.findOne({
+      where: [{ email }, { username }],
     });
 
     if (!user) {
@@ -316,45 +322,6 @@ export class UsersAuthService {
       throw new ForbiddenException('This account has been blocked.');
     }
 
-    if (!user.two_fa_enabled_at || !user.two_factor_secret) {
-      // 2FA setup is incomplete
-      throw new BadRequestException(
-        'Two-factor authentication setup is incomplete. Please complete the setup or contact support.',
-      );
-    }
-
-    const isValid = this.twoFactorAuthService.validateCode(
-      user.two_factor_secret,
-      loginWithOtpDto.code,
-    );
-
-    if (!isValid) {
-      throw new BadRequestException('Invalid 2FA code');
-    }
-
-    if (!user.verified_at) {
-      user.verify_code = this.mailService.getVerifyCode();
-      await this.usersRepository.save(user);
-
-      // Send the verification code via email
-      await this.mailService.sendMail({
-        username: user.username,
-        to: user.email,
-        subject: 'Password Reset Verification Code',
-        text: `Your verification code is: ${user.verify_code}`,
-      });
-      throw new ForbiddenException(
-        'This account has not been verified, we are sent the verify code.',
-      );
-    }
-
-    user.last_login_at = new Date();
-
-    await this.usersRepository.save(user);
-
-    const payload: JwtSignPayload = { id: user.id, roles: user.roles };
-    const token: string = this.jwtService.sign(payload);
-
-    return { token, user: transformToDto(UserResponseDto, user) };
+    return user;
   }
 }
