@@ -1,26 +1,23 @@
+import { IsOptional } from 'class-validator';
+import { AnyOf } from '../../common/validations/any-of';
 import {
-  IsEmail,
-  IsNotEmpty,
-  IsString,
-  Matches,
-  MaxLength,
-} from 'class-validator';
+  IsValidEmail,
+  IsValidPassword,
+  IsValidUsername,
+} from '../../common/validations/custom-validations';
 
+@AnyOf(['email', 'username'], {
+  message: 'Either email or username must be provided.',
+})
 export class LoginAdminDto {
-  @IsEmail({}, { message: 'Email must be a valid email address' })
-  @MaxLength(255, { message: 'Email must not exceed 255 characters' })
-  @IsString({ message: 'Email must be a string' })
-  @IsNotEmpty({ message: 'Email is required' })
-  email: string;
+  @IsValidEmail()
+  @IsOptional()
+  email?: string;
 
-  @Matches(
-    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
-    {
-      message:
-        'Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character',
-    },
-  )
-  @IsNotEmpty({ message: 'Password is required' })
-  @IsString({ message: 'Password must be a string' })
+  @IsValidUsername()
+  @IsOptional()
+  username?: string;
+
+  @IsValidPassword()
   password: string;
 }

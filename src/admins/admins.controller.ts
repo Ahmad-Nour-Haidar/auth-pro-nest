@@ -19,6 +19,7 @@ import { Admin } from './entities/admin.entity';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { UpdateMeAdminDto } from './dto/update-me-admin.dto';
 import { JwtAuthAdminGuard } from '../admins-auth/guards/jwt-auth-admin.guard';
+import { LodashService } from '../common/services/lodash.service';
 
 @Controller('admins')
 @UseGuards(RolesGuard)
@@ -27,6 +28,7 @@ export class AdminsController {
   constructor(
     private readonly adminsService: AdminsService,
     private readonly responseService: ResponseService,
+    private readonly lodashService: LodashService,
   ) {}
 
   @Post()
@@ -47,8 +49,13 @@ export class AdminsController {
       admin.id,
       updateMeAdminDto,
     );
+
     return this.responseService.success('msg', {
-      admin: transformToDto(AdminResponseDto, updatedAdmin),
+      admin: this.lodashService.omitKeys(updatedAdmin, [
+        'password',
+        'password_changed_at',
+        'verify_code',
+      ]),
     });
   }
 
@@ -76,7 +83,11 @@ export class AdminsController {
   @Get('me')
   async me(@CurrentAdmin() admin: Admin) {
     return this.responseService.success('msg', {
-      admin: transformToDto(AdminResponseDto, admin),
+      admin: this.lodashService.omitKeys(admin, [
+        'password',
+        'password_changed_at',
+        'verify_code',
+      ]),
     });
   }
 

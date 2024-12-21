@@ -73,9 +73,5 @@ npm install @nestjs/passport passport passport-local @nestjs/jwt passport-jwt bc
 
 // todo
  - in filter deleted at
- - login username or email
- - fix me - update me
- - verify 2fa
- - method return verify code
 
 

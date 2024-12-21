@@ -27,10 +27,26 @@ export class AdminResponseDto {
   deleted_at?: Date;
 
   @Expose()
-  two_factor_secret?: string;
+  password_changed_at?: Date;
+
+  @Expose()
+  last_login_at?: Date;
+
+  @Expose()
+  last_logout_at?: Date;
+
+  @Expose()
+  verified_at?: Date;
 
   @Expose()
   two_fa_enabled_at?: Date;
+
+  @Expose()
+  two_factor_verified_at?: Date;
+
+  @Expose() created_at: Date;
+
+  @Expose() updated_at: Date;
 
   @Expose()
   roles: Roles[];

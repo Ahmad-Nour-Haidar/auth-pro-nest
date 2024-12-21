@@ -195,9 +195,7 @@ export class UsersAuthService {
       secret.otpauth_url,
     );
 
-    await this.usersRepository.save(user);
-
-    return user;
+    return this.usersRepository.save(user);
   }
 
   async verify2fa(user: User, otpCodeDto: OtpCodeDto): Promise<User> {

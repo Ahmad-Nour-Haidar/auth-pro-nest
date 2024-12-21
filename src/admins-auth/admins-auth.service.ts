@@ -15,7 +15,6 @@ import { LoginAdminDto } from './dto/login-admin.dto';
 import { JwtService } from '@nestjs/jwt';
 import { JwtSignPayload } from '../common/types/jwt-payload';
 import { transformToDto } from '../utilities/transform.util';
-import { AdminResponseDto } from '../admins/dto/admin-response.dto';
 import { VerifyCodeDto } from './dto/verify-code.dto';
 import { MailService } from '../common/services/mail.service';
 import { CheckEmailDto } from './dto/check-email.dto';
@@ -24,6 +23,7 @@ import { ChangePasswordDto } from './dto/change-password.dto';
 import { TwoFactorAuthService } from '../common/services/two-factor-auth.service';
 import { OtpCodeDto } from '../common/dto/otp-code.dto';
 import { LoginWithOtpDto } from '../common/dto/login-with-otp.dto';
+import { AdminAuthResponseDto } from './dto/admin-auth-response.dto';
 
 @Injectable()
 export class AdminsAuthService {
@@ -37,44 +37,22 @@ export class AdminsAuthService {
   ) {}
 
   async login(loginDto: LoginAdminDto) {
-    const { email, password } = loginDto;
+    const { email, password, username } = loginDto;
 
-    const admin = await this.adminsRepository.findOneBy({ email });
+    const admin = await this.getAdminByEmailOrUsername({
+      email,
+      username,
+    });
 
-    if (
-      !admin ||
-      !(await this.bcryptService.compare(password, admin.password))
-    ) {
+    if (!(await this.bcryptService.compare(password, admin.password))) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    if (admin.deleted_at) {
-      throw new ForbiddenException('This account has been deleted.');
-    }
-
-    if (admin.blocked_at) {
-      throw new ForbiddenException('This account has been blocked.');
-    }
-
     if (!admin.verified_at) {
-      const verifyCode = Math.floor(100000 + Math.random() * 900000).toString();
-
-      admin.verify_code = verifyCode;
-      await this.adminsRepository.save(admin);
-
-      // Send the verification code via email
-      await this.mailService.sendMail({
-        username: admin.username,
-        to: admin.email,
-        subject: 'Password Reset Verification Code',
-        text: `Your verification code is: ${verifyCode}`,
-      });
-      throw new ForbiddenException(
-        'This account has not been verified, we are sent the verify code.',
-      );
+      throw new ForbiddenException('This account has not been verified.');
     }
 
-    if (admin.two_fa_enabled_at && admin.two_factor_secret) {
+    if (admin.two_factor_verified_at) {
       throw new HttpException(
         'Login successful. Two-Factor Authentication is enabled. Please log in using your OTP code.',
         HttpStatus.ACCEPTED,
@@ -88,29 +66,16 @@ export class AdminsAuthService {
     const payload: JwtSignPayload = { id: admin.id, roles: admin.roles };
     const token: string = this.jwtService.sign(payload);
 
-    return { token, admin: transformToDto(AdminResponseDto, admin) };
+    return { token, admin: transformToDto(AdminAuthResponseDto, admin) };
   }
 
-  async checkEmail(checkEmailDto: CheckEmailDto): Promise<void> {
-    const admin = await this.adminsRepository.findOneBy({
+  async checkEmail(checkEmailDto: CheckEmailDto): Promise<Admin> {
+    const admin = await this.getAdminByEmailOrUsername({
       email: checkEmailDto.email,
+      username: checkEmailDto.username,
     });
 
-    if (!admin) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
-
-    if (admin.deleted_at) {
-      throw new ForbiddenException('This account has been deleted.');
-    }
-
-    if (admin.blocked_at) {
-      throw new ForbiddenException('This account has been blocked.');
-    }
-
-    const verifyCode = Math.floor(100000 + Math.random() * 900000).toString();
-
-    admin.verify_code = verifyCode;
+    admin.verify_code = this.mailService.getVerifyCode();
     admin.verified_at = null;
 
     await this.adminsRepository.save(admin);
@@ -120,28 +85,19 @@ export class AdminsAuthService {
       username: admin.username,
       to: admin.email,
       subject: 'Password Reset Verification Code',
-      text: `Your verification code is: ${verifyCode}`,
+      text: `Your verification code is: ${admin.verify_code}`,
     });
+
+    return admin;
   }
 
-  async verifyCode(verifyCodeDto: VerifyCodeDto) {
-    const { email, code } = verifyCodeDto;
+  async verifyCode(verifyCodeDto: VerifyCodeDto): Promise<Admin> {
+    const admin = await this.getAdminByEmailOrUsername({
+      email: verifyCodeDto.email,
+      username: verifyCodeDto.username,
+    });
 
-    const admin = await this.adminsRepository.findOneBy({ email });
-
-    if (!admin) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
-
-    if (admin.deleted_at) {
-      throw new ForbiddenException('This account has been deleted.');
-    }
-
-    if (admin.blocked_at) {
-      throw new ForbiddenException('This account has been blocked.');
-    }
-
-    if (admin.verify_code !== code) {
+    if (admin.verify_code !== verifyCodeDto.code) {
       throw new BadRequestException('Invalid verification code');
     }
 
@@ -149,25 +105,12 @@ export class AdminsAuthService {
 
     admin.verify_code = null;
 
-    await this.adminsRepository.save(admin);
-    return { admin };
+    return this.adminsRepository.save(admin);
   }
 
-  async resetPassword(resetPasswordDto: ResetPasswordDto) {
-    const { code, email, password } = resetPasswordDto;
-    const admin = await this.adminsRepository.findOneBy({ email });
-
-    if (!admin) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
-
-    if (admin.deleted_at) {
-      throw new ForbiddenException('This account has been deleted.');
-    }
-
-    if (admin.blocked_at) {
-      throw new ForbiddenException('This account has been blocked.');
-    }
+  async resetPassword(resetPasswordDto: ResetPasswordDto): Promise<Admin> {
+    const { code, email, password, username } = resetPasswordDto;
+    const admin = await this.getAdminByEmailOrUsername({ email, username });
 
     if (admin.verify_code !== code) {
       throw new BadRequestException('Invalid verification code');
@@ -181,14 +124,13 @@ export class AdminsAuthService {
       admin.verified_at = new Date();
     }
 
-    await this.adminsRepository.save(admin);
-    return { admin };
+    return this.adminsRepository.save(admin);
   }
 
   async changePassword(
     admin: Admin,
     changePasswordDto: ChangePasswordDto,
-  ): Promise<void> {
+  ): Promise<Admin> {
     const isMatch = await this.bcryptService.compare(
       changePasswordDto.old_password,
       admin.password,
@@ -200,21 +142,11 @@ export class AdminsAuthService {
     admin.password = await this.bcryptService.hash(changePasswordDto.password);
     admin.password_changed_at = new Date();
 
-    await this.adminsRepository.save(admin);
+    return await this.adminsRepository.save(admin);
   }
 
-  async validateAdmin(email: string, password: string): Promise<any> {
-    const admin = await this.adminsRepository.findOneBy({ email });
-    if (admin && (await this.bcryptService.compare(password, admin.password))) {
-      const { password, ...result } = admin;
-      return result;
-    }
-    return null; // Return null if authentication fails
-  }
-
-  async enable2fa(admin: Admin): Promise<any> {
-    if (admin.two_fa_enabled_at && admin.two_factor_secret) {
-      // 2FA is already enabled
+  async enable2fa(admin: Admin): Promise<Admin> {
+    if (admin.two_factor_verified_at) {
       throw new ConflictException(
         'Two-factor authentication is already enabled. If you want to reset it, please disable it first.',
       );
@@ -224,23 +156,23 @@ export class AdminsAuthService {
 
     admin.two_fa_enabled_at = new Date();
     admin.two_factor_secret = secret.base32;
-
-    await this.adminsRepository.save(admin);
-
-    const generateQRCode = await this.twoFactorAuthService.generateQRCode(
+    admin.qr_code_image_url = await this.twoFactorAuthService.generateQRCode(
       secret.otpauth_url,
     );
-    return {
-      secret: secret.base32,
-      qr_code_image_url: generateQRCode,
-    };
+
+    return this.adminsRepository.save(admin);
   }
 
-  async verify2fa(admin: Admin, otpCodeDto: OtpCodeDto): Promise<void> {
+  async verify2fa(admin: Admin, otpCodeDto: OtpCodeDto): Promise<Admin> {
     if (!admin.two_fa_enabled_at || !admin.two_factor_secret) {
       // 2FA setup is incomplete
       throw new ConflictException(
-        'Two-factor authentication setup is incomplete. Please complete the setup or contact support.',
+        'Two-factor authentication setup is incomplete. Disable and re-enable.',
+      );
+    }
+    if (admin.two_factor_verified_at) {
+      throw new ConflictException(
+        'Two-factor authentication is already verified.',
       );
     }
 
@@ -252,10 +184,13 @@ export class AdminsAuthService {
     if (!isValid) {
       throw new BadRequestException('Invalid 2FA code');
     }
+
+    admin.two_factor_verified_at = new Date();
+    return this.adminsRepository.save(admin);
   }
 
   async disable2fa(admin: Admin): Promise<Admin> {
-    if (!admin.two_fa_enabled_at || !admin.two_factor_secret) {
+    if (!admin.two_factor_verified_at) {
       // 2FA setup is incomplete
       throw new ConflictException(
         'Two-factor authentication setup is incomplete or already disabled.',
@@ -264,16 +199,78 @@ export class AdminsAuthService {
 
     await this.adminsRepository.update(
       { id: admin.id },
-      { two_factor_secret: null, two_fa_enabled_at: null },
+      {
+        two_factor_secret: null,
+        two_fa_enabled_at: null,
+        two_factor_verified_at: null,
+        qr_code_image_url: null,
+      },
     );
     admin.two_factor_secret = null;
     admin.two_fa_enabled_at = null;
+    admin.two_factor_verified_at = null;
+    admin.qr_code_image_url = null;
     return admin;
   }
 
   async loginWithOtp(loginWithOtpDto: LoginWithOtpDto) {
-    const admin = await this.adminsRepository.findOneBy({
+    const admin = await this.getAdminByEmailOrUsername({
       email: loginWithOtpDto.email,
+      username: loginWithOtpDto.username,
+    });
+
+    if (!admin.verified_at) {
+      throw new ForbiddenException(
+        'This account is not verified. Please complete the verification process.',
+      );
+    }
+
+    if (!admin.two_factor_verified_at) {
+      throw new BadRequestException(
+        'Two-factor authentication (2FA) is not enabled for this account.',
+      );
+    }
+
+    const isValid = this.twoFactorAuthService.validateCode(
+      admin.two_factor_secret,
+      loginWithOtpDto.code,
+    );
+
+    if (!isValid) {
+      throw new BadRequestException('Invalid 2FA code');
+    }
+
+    admin.last_login_at = new Date();
+
+    await this.adminsRepository.save(admin);
+
+    const payload: JwtSignPayload = { id: admin.id, roles: admin.roles };
+    const token: string = this.jwtService.sign(payload);
+
+    return { token, admin: transformToDto(AdminAuthResponseDto, admin) };
+  }
+
+  async validateAdmin(email: string, password: string): Promise<any> {
+    const admin = await this.adminsRepository.findOneBy({ email });
+    if (admin && (await this.bcryptService.compare(password, admin.password))) {
+      const { password, ...result } = admin;
+      return result;
+    }
+    return null; // Return null if authentication fails
+  }
+
+  private async getAdminByEmailOrUsername(identifier: {
+    email?: string;
+    username?: string;
+  }): Promise<Admin> {
+    const { email, username } = identifier;
+
+    if (!email && !username) {
+      throw new UnauthorizedException('Email or username must be provided.');
+    }
+
+    const admin = await this.adminsRepository.findOne({
+      where: [{ email }, { username }],
     });
 
     if (!admin) {
@@ -288,47 +285,6 @@ export class AdminsAuthService {
       throw new ForbiddenException('This account has been blocked.');
     }
 
-    if (!admin.two_fa_enabled_at || !admin.two_factor_secret) {
-      // 2FA setup is incomplete
-      throw new BadRequestException(
-        'Two-factor authentication setup is incomplete. Please complete the setup or contact support.',
-      );
-    }
-
-    const isValid = this.twoFactorAuthService.validateCode(
-      admin.two_factor_secret,
-      loginWithOtpDto.code,
-    );
-
-    if (!isValid) {
-      throw new BadRequestException('Invalid 2FA code');
-    }
-
-    if (!admin.verified_at) {
-      const verifyCode = Math.floor(100000 + Math.random() * 900000).toString();
-
-      admin.verify_code = verifyCode;
-      await this.adminsRepository.save(admin);
-
-      // Send the verification code via email
-      await this.mailService.sendMail({
-        username: admin.username,
-        to: admin.email,
-        subject: 'Password Reset Verification Code',
-        text: `Your verification code is: ${verifyCode}`,
-      });
-      throw new ForbiddenException(
-        'This account has not been verified, we are sent the verify code.',
-      );
-    }
-
-    admin.last_login_at = new Date();
-
-    await this.adminsRepository.save(admin);
-
-    const payload: JwtSignPayload = { id: admin.id, roles: admin.roles };
-    const token: string = this.jwtService.sign(payload);
-
-    return { token, admin: transformToDto(AdminResponseDto, admin) };
+    return admin;
   }
 }

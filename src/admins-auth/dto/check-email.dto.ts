@@ -1,16 +1,19 @@
+import { IsOptional } from 'class-validator';
 import {
-  IsEmail,
-  MaxLength,
-  IsString,
-  IsNotEmpty,
-  Length,
-  Matches,
-} from 'class-validator';
+  IsValidEmail,
+  IsValidUsername,
+} from '../../common/validations/custom-validations';
+import { AnyOf } from '../../common/validations/any-of';
 
+@AnyOf(['email', 'username'], {
+  message: 'Either email or username must be provided.',
+})
 export class CheckEmailDto {
-  @IsEmail({}, { message: 'Email must be a valid email address' })
-  @MaxLength(255, { message: 'Email must not exceed 255 characters' })
-  @IsString({ message: 'Email must be a string' })
-  @IsNotEmpty({ message: 'Email is required' })
-  email: string;
+  @IsValidEmail()
+  @IsOptional()
+  email?: string;
+
+  @IsValidUsername()
+  @IsOptional()
+  username?: string;
 }

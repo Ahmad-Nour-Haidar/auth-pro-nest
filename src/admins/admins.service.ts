@@ -11,6 +11,7 @@ import { BcryptService } from '../common/services/bcrypt.service';
 import { Admin } from './entities/admin.entity';
 import { isSuperAdmin, Roles } from './enums/roles.enum';
 import { Repository } from 'typeorm';
+import { MailService } from '../common/services/mail.service';
 
 @Injectable()
 export class AdminsService {
@@ -18,6 +19,7 @@ export class AdminsService {
     @InjectRepository(Admin)
     private readonly adminsRepository: Repository<Admin>,
     private readonly bcryptService: BcryptService,
+    private readonly mailService: MailService,
   ) {}
 
   async create(createAdminDto: CreateAdminDto): Promise<Admin> {
@@ -29,7 +31,18 @@ export class AdminsService {
       createAdminDto.password,
     );
 
-    const admin = this.adminsRepository.create(createAdminDto);
+    const verifyCode = this.mailService.getVerifyCode();
+    const admin = this.adminsRepository.create({
+      ...createAdminDto,
+      verify_code: verifyCode,
+    });
+
+    await this.mailService.sendMail({
+      username: admin.username,
+      to: admin.email,
+      subject: 'Verification Code',
+      text: `Your verification code is: ${verifyCode}`,
+    });
 
     return this.adminsRepository.save(admin);
   }

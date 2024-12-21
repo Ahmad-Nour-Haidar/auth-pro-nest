@@ -24,8 +24,6 @@ import { transformToDto } from '../utilities/transform.util';
 import { UserAuthResponseDto } from './dto/user-auth-response.dto';
 import { JwtAuthUserGuard } from './guards/jwt-auth-user.guard';
 
-// import { UserResponseDto } from '../users/dto/user-response.dto';
-
 @Controller('users-auth')
 export class UsersAuthController {
   constructor(

@@ -66,4 +66,10 @@ export class Admin {
 
   @Column({ type: 'varchar', nullable: true })
   two_factor_secret?: string;
+
+  @Column({ type: 'timestamp', nullable: true })
+  two_factor_verified_at?: Date;
+
+  @Column({ type: 'varchar', nullable: true })
+  qr_code_image_url?: string;
 }

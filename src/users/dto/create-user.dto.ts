@@ -1,27 +1,16 @@
-import {
-  IsDefined,
-  IsEmail,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-  Matches,
-  MaxLength,
-} from 'class-validator';
+import { IsDefined, IsOptional, IsString, MaxLength } from 'class-validator';
 import { Match } from '../../common/decorators/match.decorator';
+import {
+  IsValidEmail,
+  IsValidPassword,
+  IsValidUsername,
+} from '../../common/validations/custom-validations';
 
 export class CreateUserDto {
-  @IsEmail({}, { message: 'Email must be a valid email address' })
-  @MaxLength(255, { message: 'Email must not exceed 255 characters' })
-  @IsString({ message: 'Email must be a string' })
-  @IsNotEmpty({ message: 'Email is required' })
+  @IsValidEmail()
   email: string;
 
-  @Matches(/^[a-zA-Z0-9]+$/, {
-    message: 'Username can only contain letters and numbers',
-  })
-  @MaxLength(255, { message: 'Username must not exceed 255 characters' })
-  @IsString({ message: 'Username must be a string' })
-  @IsNotEmpty({ message: 'Username is required' })
+  @IsValidUsername()
   username: string;
 
   @IsOptional()
@@ -29,29 +18,10 @@ export class CreateUserDto {
   @IsString({ message: 'Full name must be a string' })
   readonly full_name?: string;
 
-  @Matches(
-    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
-    {
-      message:
-        'Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character',
-    },
-  )
-  @IsNotEmpty({ message: 'Password is required' })
-  @IsString({ message: 'Password must be a string' })
+  @IsValidPassword()
   password: string;
 
   @IsDefined({ message: 'Confirm password is required' })
   @Match('password', { message: 'Passwords do not match' })
   confirm_password: string;
 }
-
-// @ValidateIf((_) => false) // Skipping validation if not provided by the user
-// @ArrayMinSize(1, { message: 'Roles must have at least one role' })
-// @ArrayMaxSize(1, { message: 'Roles must not exceed one role' })
-// @IsArray({ message: 'Roles must be an array' })
-// @IsEnum(Roles, { each: true, message: 'Invalid role value' })
-// readonly roles?: Roles[] = [Roles.user]; // Default value
-//
-// @ValidateIf((_) => false) // Skipping validation if not provided by the user
-// @IsEnum(CreateMethod, { message: 'Invalid method' })
-// readonly create_method: CreateMethod = CreateMethod.localEmail;
