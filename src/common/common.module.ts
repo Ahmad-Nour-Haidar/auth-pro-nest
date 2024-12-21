@@ -5,6 +5,7 @@ import { LodashService } from './services/lodash.service';
 import { ResponseService } from './services/response.service';
 import { MailService } from './services/mail.service';
 import { TwoFactorAuthService } from './services/two-factor-auth.service';
+import { JwtValidationService } from './services/jwt-validation.service';
 
 @Global()
 @Module({
@@ -16,6 +17,7 @@ import { TwoFactorAuthService } from './services/two-factor-auth.service';
     ResponseService,
     MailService,
     TwoFactorAuthService,
+    JwtValidationService,
   ],
   exports: [
     BcryptService,
@@ -23,6 +25,7 @@ import { TwoFactorAuthService } from './services/two-factor-auth.service';
     ResponseService,
     MailService,
     TwoFactorAuthService,
+    JwtValidationService,
   ],
 })
 export class CommonModule {}

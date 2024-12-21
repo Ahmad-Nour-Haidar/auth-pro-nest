@@ -4,13 +4,12 @@ import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { UsersModule } from './users/users.module';
-import { validate } from './config/env.validation';
+import { NodeEnv, validate } from './config/env.validation';
 import { LoggerMiddleware } from './middleware/logger.middleware';
 import { AdminsModule } from './admins/admins.module';
 import { SuperAdminsModule } from './super-admins/super-admins.module';
 import { AdminsAuthModule } from './admins-auth/admins-auth.module';
 import { CommonModule } from './common/common.module';
-import { JwtStrategy } from './common/strategies/jwt.strategy';
 import { UsersAuthModule } from './users-auth/users-auth.module';
 
 @Global()
@@ -20,7 +19,7 @@ import { UsersAuthModule } from './users-auth/users-auth.module';
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath:
-        process.env.NODE_ENV === 'production' ? '.env.prod' : '.env.dev',
+        process.env.NODE_ENV === NodeEnv.production ? '.env.prod' : '.env.dev',
       validate,
     }),
 
@@ -66,8 +65,7 @@ import { UsersAuthModule } from './users-auth/users-auth.module';
     UsersAuthModule,
     CommonModule,
   ],
-  exports: [JwtModule],
-  providers: [JwtStrategy],
+  exports: [JwtModule, UsersAuthModule, AdminsAuthModule],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

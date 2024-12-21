@@ -14,7 +14,6 @@ import { UsersAuthService } from './users-auth.service';
 import { VerifyCodeDto } from './dto/verify-code.dto';
 import { CheckEmailDto } from './dto/check-email.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
-import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { CurrentUser } from '../common/decorators';
 import { OtpCodeDto } from '../common/dto/otp-code.dto';
@@ -23,6 +22,7 @@ import { User } from '../users/entities/user.entity';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { transformToDto } from '../utilities/transform.util';
 import { UserAuthResponseDto } from './dto/user-auth-response.dto';
+import { JwtAuthUserGuard } from './guards/jwt-auth-user.guard';
 
 // import { UserResponseDto } from '../users/dto/user-response.dto';
 
@@ -73,7 +73,7 @@ export class UsersAuthController {
 
   @Post('change-password')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthUserGuard)
   async changePassword(
     @Body() changePasswordDto: ChangePasswordDto,
     @CurrentUser() user: User,
@@ -83,7 +83,7 @@ export class UsersAuthController {
   }
 
   @Get('enable-2fa')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthUserGuard)
   async enable2fa(@CurrentUser() user: User) {
     const result = await this.usersAuthService.enable2fa(user);
     return this.responseService.success(
@@ -94,7 +94,7 @@ export class UsersAuthController {
 
   @Post('verify-2fa')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthUserGuard)
   async verify2fa(@CurrentUser() user: User, @Body() otpCodeDto: OtpCodeDto) {
     const result = await this.usersAuthService.verify2fa(user, otpCodeDto);
     return this.responseService.success('2FA verified successfully', {
@@ -104,7 +104,7 @@ export class UsersAuthController {
 
   @Patch('disable-2fa')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthUserGuard)
   async disable2fa(@CurrentUser() user: User) {
     const result = await this.usersAuthService.disable2fa(user);
     return this.responseService.success('2FA disabled successfully', {

@@ -13,16 +13,16 @@ import { CurrentUser, SuperAdminOnly } from '../common/decorators';
 import { transformToDto } from '../utilities/transform.util';
 import { UUIDV4Param } from '../common/decorators/uuid-param.decorator';
 import { RolesGuard } from '../common/guards/roles.guard';
-import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { ResponseService } from '../common/services/response.service';
 import { User } from './entities/user.entity';
 import { UserResponseDto } from './dto/user-response.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { LodashService } from '../common/services/lodash.service';
+import { JwtAuthUserGuard } from '../users-auth/guards/jwt-auth-user.guard';
 
 @Controller('users')
 @UseGuards(RolesGuard)
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthUserGuard)
 export class UsersController {
   constructor(
     private readonly usersService: UsersService,

@@ -7,9 +7,9 @@ import {
 } from 'class-validator';
 import { plainToInstance } from 'class-transformer';
 
-enum NodeEnv {
-  Development = 'development',
-  Production = 'production',
+export enum NodeEnv {
+  development = 'development',
+  production = 'production',
 }
 
 export class EnvironmentVariables {

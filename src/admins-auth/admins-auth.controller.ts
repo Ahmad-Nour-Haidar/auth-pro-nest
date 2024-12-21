@@ -14,12 +14,12 @@ import { AdminsAuthService } from './admins-auth.service';
 import { VerifyCodeDto } from './dto/verify-code.dto';
 import { CheckEmailDto } from './dto/check-email.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
-import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { CurrentAdmin } from '../common/decorators';
 import { Admin } from '../admins/entities/admin.entity';
 import { OtpCodeDto } from '../common/dto/otp-code.dto';
 import { LoginWithOtpDto } from '../common/dto/login-with-otp.dto';
+import { JwtAuthAdminGuard } from './guards/jwt-auth-admin.guard';
 
 @Controller('admins-auth')
 export class AdminsAuthController {
@@ -58,7 +58,7 @@ export class AdminsAuthController {
 
   @Post('change-password')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthAdminGuard)
   async changePassword(
     @Body() changePasswordDto: ChangePasswordDto,
     @CurrentAdmin() admin: Admin,
@@ -68,7 +68,7 @@ export class AdminsAuthController {
   }
 
   @Get('enable-2fa')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthAdminGuard)
   async enable(@CurrentAdmin() admin: Admin) {
     const result = await this.adminsAuthService.enable2fa(admin);
     return this.responseService.success(
@@ -79,7 +79,7 @@ export class AdminsAuthController {
 
   @Post('verify-2fa')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthAdminGuard)
   async verify2fa(
     @CurrentAdmin() admin: Admin,
     @Body() otpCodeDto: OtpCodeDto,
@@ -90,7 +90,7 @@ export class AdminsAuthController {
 
   @Patch('disable-2fa')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthAdminGuard)
   async disable2fa(@CurrentAdmin() admin: Admin) {
     await this.adminsAuthService.disable2fa(admin);
     return this.responseService.success('2FA disabled successfully');

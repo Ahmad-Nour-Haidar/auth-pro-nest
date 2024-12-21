@@ -14,15 +14,15 @@ import { UUIDV4Param } from '../common/decorators/uuid-param.decorator';
 import { ResponseService } from '../common/services/response.service';
 import { transformToDto } from '../utilities/transform.util';
 import { AdminResponseDto } from './dto/admin-response.dto';
-import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CurrentAdmin, SuperAdminOnly } from '../common/decorators';
 import { Admin } from './entities/admin.entity';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { UpdateMeAdminDto } from './dto/update-me-admin.dto';
+import { JwtAuthAdminGuard } from '../admins-auth/guards/jwt-auth-admin.guard';
 
 @Controller('admins')
 @UseGuards(RolesGuard)
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthAdminGuard)
 export class AdminsController {
   constructor(
     private readonly adminsService: AdminsService,
