@@ -13,6 +13,7 @@ import { Repository } from 'typeorm';
 import { Roles } from '../admins/enums/roles.enum';
 import { CreateMethod } from './enums/create-method.enum';
 import { MailService } from '../common/services/mail.service';
+import { RandomService } from '../common/services/random.service';
 
 @Injectable()
 export class UsersService {
@@ -21,6 +22,7 @@ export class UsersService {
     private readonly usersRepository: Repository<User>,
     private readonly bcryptService: BcryptService,
     private readonly mailService: MailService,
+    private readonly randomService: RandomService,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
@@ -32,7 +34,7 @@ export class UsersService {
       createUserDto.password,
     );
 
-    const verifyCode = this.mailService.getVerifyCode();
+    const verifyCode = this.randomService.getRandomNumericString(6);
     const user = this.usersRepository.create({
       ...createUserDto,
       verify_code: verifyCode,

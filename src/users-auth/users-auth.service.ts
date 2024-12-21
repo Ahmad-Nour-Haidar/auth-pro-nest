@@ -28,6 +28,9 @@ import { UsersService } from '../users/users.service';
 import { CreateMethod } from '../users/enums/create-method.enum';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { UserAuthResponseDto } from './dto/user-auth-response.dto';
+import { GoogleSignInDto } from './dto/google-sign-in.dto';
+import { GoogleAuthService } from './google-auth.service';
+import { RandomService } from '../common/services/random.service';
 
 @Injectable()
 export class UsersAuthService {
@@ -39,6 +42,8 @@ export class UsersAuthService {
     private readonly jwtService: JwtService,
     private readonly mailService: MailService,
     private readonly twoFactorAuthService: TwoFactorAuthService,
+    private readonly googleAuthService: GoogleAuthService,
+    private readonly randomService: RandomService,
   ) {}
 
   async register(registerUserDto: RegisterUserDto): Promise<User> {
@@ -50,7 +55,7 @@ export class UsersAuthService {
       registerUserDto.password,
     );
 
-    const verifyCode = this.mailService.getVerifyCode();
+    const verifyCode = this.randomService.getRandomNumericString(6);
 
     const user = this.usersRepository.create({
       ...registerUserDto,
@@ -108,7 +113,7 @@ export class UsersAuthService {
       username: checkEmailDto.username,
     });
 
-    user.verify_code = this.mailService.getVerifyCode();
+    user.verify_code = this.randomService.getRandomNumericString(6);
     user.verified_at = null;
 
     await this.usersRepository.save(user);
@@ -117,9 +122,10 @@ export class UsersAuthService {
     await this.mailService.sendMail({
       username: user.username,
       to: user.email,
-      subject: 'Password Reset Verification Code',
+      subject: 'Verification Code',
       text: `Your verification code is: ${user.verify_code}`,
     });
+
     return user;
   }
 
@@ -137,8 +143,7 @@ export class UsersAuthService {
 
     user.verify_code = null;
 
-    await this.usersRepository.save(user);
-    return user;
+    return this.usersRepository.save(user);
   }
 
   async resetPassword(resetPasswordDto: ResetPasswordDto): Promise<User> {
@@ -157,8 +162,7 @@ export class UsersAuthService {
       user.verified_at = new Date();
     }
 
-    await this.usersRepository.save(user);
-    return user;
+    return this.usersRepository.save(user);
   }
 
   async changePassword(
@@ -283,6 +287,70 @@ export class UsersAuthService {
     const token: string = this.jwtService.sign(payload);
 
     return { token, user: transformToDto(UserAuthResponseDto, user) };
+  }
+
+  async googleSignIn(googleSignInDto: GoogleSignInDto) {
+    const tokenPayload = await this.googleAuthService.validateGoogleToken(
+      googleSignInDto.idToken,
+    );
+
+    // Destructure the required information from the token payload
+    const { email, name } = tokenPayload;
+
+    // Check if the user already exists in the database
+    let user = await this.usersRepository.findOneBy({ email });
+
+    // If the user exists, treat it as a login
+    if (user) {
+      if (user.deleted_at) {
+        throw new ForbiddenException('This account has been deleted.');
+      }
+
+      if (user.blocked_at) {
+        throw new ForbiddenException('This account has been blocked.');
+      }
+
+      if (!user.verified_at) {
+        throw new ForbiddenException('This account has not been verified.');
+      }
+
+      // Update last login timestamp
+      user.last_login_at = new Date();
+      await this.usersRepository.save(user);
+
+      const payload: JwtSignPayload = { id: user.id, roles: user.roles };
+      const token: string = this.jwtService.sign(payload);
+
+      return {
+        token,
+        user: transformToDto(UserAuthResponseDto, user),
+      };
+    }
+
+    // If the user does not exist, treat it as a first-time login (registration)
+    let username = email.split('@')[0];
+
+    while (await this.usersRepository.existsBy({ username })) {
+      username = username + this.randomService.getRandomString(10);
+    }
+    user = this.usersRepository.create({
+      email,
+      username,
+      full_name: name,
+      verified_at: new Date(), // Automatically verify Google users
+      create_method: CreateMethod.google,
+      roles: [Roles.user],
+    });
+
+    await this.usersRepository.save(user);
+
+    const payload: JwtSignPayload = { id: user.id, roles: user.roles };
+    const token: string = this.jwtService.sign(payload);
+
+    return {
+      token,
+      user: transformToDto(UserAuthResponseDto, user),
+    };
   }
 
   async validateUser(email: string, password: string): Promise<any> {

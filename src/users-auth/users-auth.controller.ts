@@ -23,6 +23,7 @@ import { RegisterUserDto } from './dto/register-user.dto';
 import { transformToDto } from '../utilities/transform.util';
 import { UserAuthResponseDto } from './dto/user-auth-response.dto';
 import { JwtAuthUserGuard } from './guards/jwt-auth-user.guard';
+import { GoogleSignInDto } from './dto/google-sign-in.dto';
 
 @Controller('users-auth')
 export class UsersAuthController {
@@ -115,5 +116,14 @@ export class UsersAuthController {
   async loginWithOtp(@Body() loginWithOtpDto: LoginWithOtpDto) {
     const result = await this.usersAuthService.loginWithOtp(loginWithOtpDto);
     return this.responseService.success('2FA disabled successfully', result);
+  }
+
+  @Post('google-sign-in')
+  @HttpCode(HttpStatus.OK)
+  async googleSignIn(@Body() googleSignInDto: GoogleSignInDto) {
+    const result = await this.usersAuthService.googleSignIn(googleSignInDto);
+    return this.responseService.success('google sign in successfully', {
+      result,
+    });
   }
 }

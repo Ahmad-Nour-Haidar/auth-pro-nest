@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
 import * as process from 'node:process';
 
@@ -18,10 +18,12 @@ export class MailService {
   });
 
   async sendMail(mailOptions: any): Promise<void> {
-    await this.transporter.sendMail(mailOptions);
-  }
-
-  getVerifyCode(): string {
-    return Math.floor(100000 + Math.random() * 900000).toString();
+    try {
+      await this.transporter.sendMail(mailOptions);
+    } catch (err) {
+      throw new UnauthorizedException(
+        'An error occurred while sending the email to the address you provided. Please ensure you have an active internet connection and that the email address is correct, then try again.',
+      );
+    }
   }
 }

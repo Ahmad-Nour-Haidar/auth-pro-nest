@@ -6,6 +6,7 @@ import { ResponseService } from './services/response.service';
 import { MailService } from './services/mail.service';
 import { TwoFactorAuthService } from './services/two-factor-auth.service';
 import { JwtValidationService } from './services/jwt-validation.service';
+import { RandomService } from './services/random.service';
 
 @Global()
 @Module({
@@ -18,6 +19,7 @@ import { JwtValidationService } from './services/jwt-validation.service';
     MailService,
     TwoFactorAuthService,
     JwtValidationService,
+    RandomService,
   ],
   exports: [
     BcryptService,
@@ -26,6 +28,7 @@ import { JwtValidationService } from './services/jwt-validation.service';
     MailService,
     TwoFactorAuthService,
     JwtValidationService,
+    RandomService,
   ],
 })
 export class CommonModule {}

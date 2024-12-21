@@ -24,6 +24,7 @@ import { TwoFactorAuthService } from '../common/services/two-factor-auth.service
 import { OtpCodeDto } from '../common/dto/otp-code.dto';
 import { LoginWithOtpDto } from '../common/dto/login-with-otp.dto';
 import { AdminAuthResponseDto } from './dto/admin-auth-response.dto';
+import { RandomService } from '../common/services/random.service';
 
 @Injectable()
 export class AdminsAuthService {
@@ -34,6 +35,7 @@ export class AdminsAuthService {
     private readonly jwtService: JwtService,
     private readonly mailService: MailService,
     private readonly twoFactorAuthService: TwoFactorAuthService,
+    private readonly randomService: RandomService,
   ) {}
 
   async login(loginDto: LoginAdminDto) {
@@ -75,7 +77,7 @@ export class AdminsAuthService {
       username: checkEmailDto.username,
     });
 
-    admin.verify_code = this.mailService.getVerifyCode();
+    admin.verify_code = this.randomService.getRandomNumericString(6);
     admin.verified_at = null;
 
     await this.adminsRepository.save(admin);

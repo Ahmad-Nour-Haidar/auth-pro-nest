@@ -12,6 +12,7 @@ import { Admin } from './entities/admin.entity';
 import { isSuperAdmin, Roles } from './enums/roles.enum';
 import { Repository } from 'typeorm';
 import { MailService } from '../common/services/mail.service';
+import { RandomService } from '../common/services/random.service';
 
 @Injectable()
 export class AdminsService {
@@ -20,6 +21,7 @@ export class AdminsService {
     private readonly adminsRepository: Repository<Admin>,
     private readonly bcryptService: BcryptService,
     private readonly mailService: MailService,
+    private readonly randomService: RandomService,
   ) {}
 
   async create(createAdminDto: CreateAdminDto): Promise<Admin> {
@@ -31,7 +33,7 @@ export class AdminsService {
       createAdminDto.password,
     );
 
-    const verifyCode = this.mailService.getVerifyCode();
+    const verifyCode = this.randomService.getRandomNumericString(6);
     const admin = this.adminsRepository.create({
       ...createAdminDto,
       verify_code: verifyCode,

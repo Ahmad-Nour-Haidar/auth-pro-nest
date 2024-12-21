@@ -24,7 +24,7 @@ export class User {
   @Column({ nullable: true, type: 'varchar', length: 255 })
   full_name?: string;
 
-  @Column({ type: 'varchar' })
+  @Column({ type: 'varchar', nullable: true })
   password: string;
 
   @Column({ type: 'timestamp', nullable: true })
