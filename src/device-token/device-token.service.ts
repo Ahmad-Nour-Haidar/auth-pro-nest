@@ -3,12 +3,15 @@ import { CreateDeviceTokenDto } from './dto/create-device-token.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { DeviceToken } from './entities/device-token.entity';
+import { CustomI18nService } from '../common/services/custom-i18n.service';
+import { TranslationKeys } from '../i18n/translation-keys';
 
 @Injectable()
 export class DeviceTokenService {
   constructor(
     @InjectRepository(DeviceToken)
     private readonly deviceTokenRepository: Repository<DeviceToken>,
+    private readonly i18n: CustomI18nService,
   ) {}
 
   async set(createDeviceTokenDto: CreateDeviceTokenDto): Promise<DeviceToken> {
@@ -32,23 +35,29 @@ export class DeviceTokenService {
     }
   }
 
-  async deleteByEntityId(entity_id: string) {
-    // Check if a record with the given entity_id exists
-    const existingToken = await this.deviceTokenRepository.findOneBy({
-      entity_id,
-    });
+  async deleteByEntityId({
+    entity_id,
+    throwIfNotFound = true,
+  }: {
+    entity_id: string;
+    throwIfNotFound?: boolean;
+  }): Promise<void> {
+    if (throwIfNotFound) {
+      // Check if a record with the given entity_id exists
+      const existingToken = await this.deviceTokenRepository.findOneBy({
+        entity_id,
+      });
 
-    if (!existingToken) {
-      throw new NotFoundException(
-        `Device token with entity_id ${entity_id} not found`,
-      );
+      if (!existingToken) {
+        throw new NotFoundException(
+          this.i18n.tr(TranslationKeys.device_token_not_found, {
+            args: { entity_id },
+          }),
+        );
+      }
     }
 
     // Delete the record
     await this.deviceTokenRepository.delete({ entity_id });
-
-    return {
-      message: `Device token with entity_id ${entity_id} deleted successfully`,
-    };
   }
 }

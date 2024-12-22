@@ -83,5 +83,7 @@
   "entity_not_found": "لم يتم العثور على العنصر المطلوب.",
   "password_recently_changed": "لقد قمت بتغيير كلمة المرور مؤخرًا. يرجى تسجيل الدخول مرة أخرى.",
   "logged_in_after_token_issued": "لقد قمت بتسجيل الدخول بعد إصدار الرمز. يرجى تسجيل الدخول مرة أخرى.",
-  "logged_out_after_token_issued": "لقد قمت بتسجيل الخروج بعد إصدار الرمز. يرجى تسجيل الدخول مرة أخرى."
+  "logged_out_after_token_issued": "لقد قمت بتسجيل الخروج بعد إصدار الرمز. يرجى تسجيل الدخول مرة أخرى.",
+  "success": "تم بنجاح",
+  "device_token_not_found": "رمز الجهاز مع entity_id ${entity_id} غير موجود"
 }

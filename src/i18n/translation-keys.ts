@@ -89,4 +89,6 @@ export class TranslationKeys {
   static password_recently_changed = 'translations.password_recently_changed';
   static logged_in_after_token_issued = 'translations.logged_in_after_token_issued';
   static logged_out_after_token_issued = 'translations.logged_out_after_token_issued';
+  static success = 'translations.success';
+  static device_token_not_found = 'translations.device_token_not_found';
 }

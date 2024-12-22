@@ -25,7 +25,7 @@ export class JwtUserStrategy extends PassportStrategy(Strategy, 'jwt-user') {
     const { id, iat } = payload;
     const user = await this.usersService.findOne(id);
 
-    this.validationService.validateEntity(user, iat, 'user');
+    this.validationService.validateEntity(user, iat);
     return user;
   }
 }

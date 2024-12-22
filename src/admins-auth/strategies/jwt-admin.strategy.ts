@@ -25,7 +25,7 @@ export class JwtAdminStrategy extends PassportStrategy(Strategy, 'jwt-admin') {
     const { id, iat } = payload;
     const admin = await this.adminsService.findOne(id);
 
-    this.validationService.validateEntity(admin, iat, 'admin');
+    this.validationService.validateEntity(admin, iat);
     return admin;
   }
 }
