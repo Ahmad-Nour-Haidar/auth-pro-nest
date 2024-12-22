@@ -85,5 +85,6 @@
   "logged_in_after_token_issued": "You have logged in after the token was issued. Please log in again.",
   "logged_out_after_token_issued": "You have logged out after the token was issued. Please log in again.",
   "success": "Done successfully",
-  "device_token_not_found": "Device token with entity_id ${entity_id} not found"
+  "device_token_not_found": "Device token with entity_id ${entity_id} not found",
+  "logged_out_successfully": "Logged out successfully"
 }

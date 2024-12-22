@@ -73,4 +73,4 @@ npm install @nestjs/passport passport passport-local @nestjs/jwt passport-jwt bc
 
 // todo
  - in filter deleted at
- - logout
+ - test device tokens - logout

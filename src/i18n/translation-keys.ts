@@ -91,4 +91,5 @@ export class TranslationKeys {
   static logged_out_after_token_issued = 'translations.logged_out_after_token_issued';
   static success = 'translations.success';
   static device_token_not_found = 'translations.device_token_not_found';
+  static logged_out_successfully = 'translations.logged_out_successfully';
 }

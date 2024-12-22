@@ -85,5 +85,6 @@
   "logged_in_after_token_issued": "لقد قمت بتسجيل الدخول بعد إصدار الرمز. يرجى تسجيل الدخول مرة أخرى.",
   "logged_out_after_token_issued": "لقد قمت بتسجيل الخروج بعد إصدار الرمز. يرجى تسجيل الدخول مرة أخرى.",
   "success": "تم بنجاح",
-  "device_token_not_found": "رمز الجهاز مع entity_id ${entity_id} غير موجود"
+  "device_token_not_found": "رمز الجهاز مع entity_id ${entity_id} غير موجود",
+  "logged_out_successfully": "تم تسجيل الخروج بنجاح"
 }
