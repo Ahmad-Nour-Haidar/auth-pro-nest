@@ -189,7 +189,7 @@ export class UsersService {
     });
     if (!user) {
       throw new NotFoundException(
-        this.i18n.tr(TranslationKeys.account_not_found, {
+        this.i18n.tr(TranslationKeys.account_not_found_with_id, {
           args: { id },
         }),
       );

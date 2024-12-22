@@ -43,6 +43,7 @@ export class TranslationKeys {
   static account_restore_error = 'translations.account_restore_error';
   static account_already_blocked = 'translations.account_already_blocked';
   static account_not_blocked = 'translations.account_not_blocked';
+  static account_not_found_with_id = 'translations.account_not_found_with_id';
   static account_not_found = 'translations.account_not_found';
   static login_success = 'translations.login_success';
   static verification_code_sent = 'translations.verification_code_sent';
@@ -84,4 +85,8 @@ export class TranslationKeys {
   static registration_successful = 'translations.registration_successful';
   static google_sign_in_successful = 'translations.google_sign_in_successful';
   static language_or_device_token_required = 'translations.language_or_device_token_required';
+  static entity_not_found = 'translations.entity_not_found';
+  static password_recently_changed = 'translations.password_recently_changed';
+  static logged_in_after_token_issued = 'translations.logged_in_after_token_issued';
+  static logged_out_after_token_issued = 'translations.logged_out_after_token_issued';
 }

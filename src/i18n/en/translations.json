@@ -38,7 +38,8 @@
   "account_restore_error": "Account with ID ${id} could not be restored due to a database error",
   "account_already_blocked": "Account with ID ${id} is already blocked",
   "account_not_blocked": "Account with ID ${id} is not blocked",
-  "account_not_found": "Account with ID ${id} not found",
+  "account_not_found_with_id": "Account with ID ${id} not found",
+  "account_not_found": "Account not found.",
   "login_success": "Login successful",
   "verification_code_sent": "Verification code sent to your email.",
   "code_verified": "Code verified successfully.",
@@ -78,5 +79,9 @@
   "action_performed": "Action performed successfully",
   "registration_successful": "Registration successfully, Welcome!",
   "google_sign_in_successful": "Google sign in successfully",
-  "language_or_device_token_required": "You must provide either a language or a device token."
+  "language_or_device_token_required": "You must provide either a language or a device token.",
+  "entity_not_found": "The requested item could not be found.",
+  "password_recently_changed": "You recently changed your password. Please log in again.",
+  "logged_in_after_token_issued": "You have logged in after the token was issued. Please log in again.",
+  "logged_out_after_token_issued": "You have logged out after the token was issued. Please log in again."
 }

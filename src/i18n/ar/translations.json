@@ -38,7 +38,8 @@
   "account_restore_error": "لم يمكن استعادة الحساب ذو المعرف ${id} بسبب خطأ في قاعدة البيانات",
   "account_already_blocked": "الحساب ذو المعرف ${id} محظور بالفعل",
   "account_not_blocked": "الحساب ذو المعرف ${id} غير محظور",
-  "account_not_found": "الحساب ذو المعرف ${id} غير موجود",
+  "account_not_found_with_id": "لم يتم العثور على الحساب برقم التعريف ${id}.",
+  "account_not_found": "Account not found.",
   "login_success": "تم تسجيل الدخول بنجاح",
   "verification_code_sent": "تم إرسال رمز التحقق إلى بريدك الإلكتروني.",
   "code_verified": "تم التحقق من الرمز بنجاح.",
@@ -78,5 +79,9 @@
   "action_performed": "تم تنفيذ الإجراء بنجاح",
   "registration_successful": "تم التسجيل بنجاح، أهلاً وسهلاً!",
   "google_sign_in_successful": "تم تسجيل الدخول عبر جوجل بنجاح",
-  "language_or_device_token_required": "يجب تقديم لغة أو رمز جهاز."
+  "language_or_device_token_required": "يجب تقديم لغة أو رمز جهاز.",
+  "entity_not_found": "لم يتم العثور على العنصر المطلوب.",
+  "password_recently_changed": "لقد قمت بتغيير كلمة المرور مؤخرًا. يرجى تسجيل الدخول مرة أخرى.",
+  "logged_in_after_token_issued": "لقد قمت بتسجيل الدخول بعد إصدار الرمز. يرجى تسجيل الدخول مرة أخرى.",
+  "logged_out_after_token_issued": "لقد قمت بتسجيل الخروج بعد إصدار الرمز. يرجى تسجيل الدخول مرة أخرى."
 }

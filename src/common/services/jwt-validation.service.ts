@@ -1,39 +1,43 @@
 import { Injectable, ForbiddenException } from '@nestjs/common';
+import { CustomI18nService } from './custom-i18n.service';
+import { TranslationKeys } from '../../i18n/translation-keys';
 
 @Injectable()
 export class JwtValidationService {
-  validateEntity(entity: any, iat: number, entityType: 'user' | 'admin'): void {
+  constructor(private readonly i18n: CustomI18nService) {}
+
+  validateEntity(entity: any, iat: number): void {
     if (!entity) {
       throw new ForbiddenException(
-        `${this.capitalize(entityType)} does not exist.`,
+        this.i18n.tr(TranslationKeys.account_not_found),
       );
     }
 
     if (entity.deleted_at) {
       throw new ForbiddenException(
-        `This ${entityType} account has been deleted.`,
+        this.i18n.tr(TranslationKeys.account_deleted),
       );
     }
 
     if (entity.blocked_at) {
       throw new ForbiddenException(
-        `This ${entityType} account has been blocked.`,
+        this.i18n.tr(TranslationKeys.account_blocked),
       );
     }
 
     if (!entity.verified_at) {
       throw new ForbiddenException(
-        `This ${entityType} account has not been verified.`,
+        this.i18n.tr(TranslationKeys.account_not_verified),
       );
     }
 
-    this.validateTimestamps(entity, iat, entityType);
+    this.validateTimestamps(entity, iat);
   }
 
   private validateTimestamps(
     entity: any,
     iat: number,
-    entityType: 'user' | 'admin',
+    // entityType: 'user' | 'admin',
   ): void {
     const passChangedTimestamp = entity.password_changed_at
       ? Math.floor(entity.password_changed_at.getTime() / 1000)
@@ -41,7 +45,7 @@ export class JwtValidationService {
 
     if (passChangedTimestamp && passChangedTimestamp > iat) {
       throw new ForbiddenException(
-        `${this.capitalize(entityType)} recently changed their password. Please log in again.`,
+        this.i18n.tr(TranslationKeys.password_recently_changed),
       );
     }
 
@@ -51,7 +55,7 @@ export class JwtValidationService {
 
     if (lastLoginTimestamp && lastLoginTimestamp > iat) {
       throw new ForbiddenException(
-        `${this.capitalize(entityType)} has logged in after the token was issued. Please log in again.`,
+        this.i18n.tr(TranslationKeys.logged_in_after_token_issued),
       );
     }
 
@@ -61,12 +65,12 @@ export class JwtValidationService {
 
     if (lastLogoutTimestamp && lastLogoutTimestamp > iat) {
       throw new ForbiddenException(
-        `${this.capitalize(entityType)} has logged out after the token was issued. Please log in again.`,
+        this.i18n.tr(TranslationKeys.logged_out_after_token_issued),
       );
     }
   }
 
-  private capitalize(str: string): string {
-    return str.charAt(0).toUpperCase() + str.slice(1);
-  }
+  // private capitalize(str: string): string {
+  //   return str.charAt(0).toUpperCase() + str.slice(1);
+  // }
 }
