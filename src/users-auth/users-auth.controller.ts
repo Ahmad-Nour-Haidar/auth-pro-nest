@@ -24,27 +24,36 @@ import { transformToDto } from '../utilities/transform.util';
 import { UserAuthResponseDto } from './dto/user-auth-response.dto';
 import { JwtAuthUserGuard } from './guards/jwt-auth-user.guard';
 import { GoogleSignInDto } from './dto/google-sign-in.dto';
+import { CustomI18nService } from '../common/services/custom-i18n.service';
+import { TranslationKeys } from '../i18n/translation-keys';
 
 @Controller('users-auth')
 export class UsersAuthController {
   constructor(
     private readonly usersAuthService: UsersAuthService,
     private readonly responseService: ResponseService,
+    private readonly i18n: CustomI18nService,
   ) {}
 
   @Post('register')
   async register(@Body() registerUserDto: RegisterUserDto) {
     const user = await this.usersAuthService.register(registerUserDto);
-    return this.responseService.success('msg', {
-      user: transformToDto(UserAuthResponseDto, user),
-    });
+    return this.responseService.success(
+      this.i18n.tr(TranslationKeys.registration_successful),
+      {
+        user: transformToDto(UserAuthResponseDto, user),
+      },
+    );
   }
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
   async login(@Body() loginDto: LoginUserDto) {
     const result = await this.usersAuthService.login(loginDto);
-    return this.responseService.success('msg', result);
+    return this.responseService.success(
+      this.i18n.tr(TranslationKeys.login_success),
+      result,
+    );
   }
 
   @Post('check-email')
@@ -52,7 +61,7 @@ export class UsersAuthController {
   async checkEmail(@Body() checkEmailDto: CheckEmailDto) {
     await this.usersAuthService.checkEmail(checkEmailDto);
     return this.responseService.success(
-      'msg email check success and we sent verify code ',
+      this.i18n.tr(TranslationKeys.verification_code_sent),
     );
   }
 
@@ -60,14 +69,18 @@ export class UsersAuthController {
   @HttpCode(HttpStatus.OK)
   async verifyCode(@Body() verifyCodeDto: VerifyCodeDto) {
     await this.usersAuthService.verifyCode(verifyCodeDto);
-    return this.responseService.success('verified success');
+    return this.responseService.success(
+      this.i18n.tr(TranslationKeys.code_verified),
+    );
   }
 
   @Post('reset-password')
   @HttpCode(HttpStatus.OK)
   async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
     await this.usersAuthService.resetPassword(resetPasswordDto);
-    return this.responseService.success('msg');
+    return this.responseService.success(
+      this.i18n.tr(TranslationKeys.password_reset),
+    );
   }
 
   @Post('change-password')
@@ -78,7 +91,9 @@ export class UsersAuthController {
     @CurrentUser() user: User,
   ) {
     await this.usersAuthService.changePassword(user, changePasswordDto);
-    return this.responseService.success('msg');
+    return this.responseService.success(
+      this.i18n.tr(TranslationKeys.password_changed),
+    );
   }
 
   @Get('enable-2fa')
@@ -86,7 +101,7 @@ export class UsersAuthController {
   async enable2fa(@CurrentUser() user: User) {
     const result = await this.usersAuthService.enable2fa(user);
     return this.responseService.success(
-      '2FA enabled successfully, please go and verify your Authenticator App',
+      this.i18n.tr(TranslationKeys.two_factor_enabled),
       { user: transformToDto(UserAuthResponseDto, result) },
     );
   }
@@ -96,9 +111,12 @@ export class UsersAuthController {
   @UseGuards(JwtAuthUserGuard)
   async verify2fa(@CurrentUser() user: User, @Body() otpCodeDto: OtpCodeDto) {
     const result = await this.usersAuthService.verify2fa(user, otpCodeDto);
-    return this.responseService.success('2FA verified successfully', {
-      user: transformToDto(UserAuthResponseDto, result),
-    });
+    return this.responseService.success(
+      this.i18n.tr(TranslationKeys.two_factor_verified),
+      {
+        user: transformToDto(UserAuthResponseDto, result),
+      },
+    );
   }
 
   @Patch('disable-2fa')
@@ -106,24 +124,33 @@ export class UsersAuthController {
   @UseGuards(JwtAuthUserGuard)
   async disable2fa(@CurrentUser() user: User) {
     const result = await this.usersAuthService.disable2fa(user);
-    return this.responseService.success('2FA disabled successfully', {
-      user: transformToDto(UserAuthResponseDto, result),
-    });
+    return this.responseService.success(
+      this.i18n.tr(TranslationKeys.two_factor_disabled),
+      {
+        user: transformToDto(UserAuthResponseDto, result),
+      },
+    );
   }
 
   @Post('login-with-otp')
   @HttpCode(HttpStatus.OK)
   async loginWithOtp(@Body() loginWithOtpDto: LoginWithOtpDto) {
     const result = await this.usersAuthService.loginWithOtp(loginWithOtpDto);
-    return this.responseService.success('2FA disabled successfully', result);
+    return this.responseService.success(
+      this.i18n.tr(TranslationKeys.otp_login_success),
+      result,
+    );
   }
 
   @Post('google-sign-in')
   @HttpCode(HttpStatus.OK)
   async googleSignIn(@Body() googleSignInDto: GoogleSignInDto) {
     const result = await this.usersAuthService.googleSignIn(googleSignInDto);
-    return this.responseService.success('google sign in successfully', {
-      result,
-    });
+    return this.responseService.success(
+      this.i18n.tr(TranslationKeys.google_sign_in_successful),
+      {
+        result,
+      },
+    );
   }
 }

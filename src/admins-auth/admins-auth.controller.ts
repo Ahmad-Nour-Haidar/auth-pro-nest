@@ -22,19 +22,25 @@ import { LoginWithOtpDto } from '../common/dto/login-with-otp.dto';
 import { JwtAuthAdminGuard } from './guards/jwt-auth-admin.guard';
 import { transformToDto } from '../utilities/transform.util';
 import { AdminAuthResponseDto } from './dto/admin-auth-response.dto';
+import { CustomI18nService } from '../common/services/custom-i18n.service';
+import { TranslationKeys } from '../i18n/translation-keys';
 
 @Controller('admins-auth')
 export class AdminsAuthController {
   constructor(
     private readonly adminsAuthService: AdminsAuthService,
     private readonly responseService: ResponseService,
+    private readonly i18n: CustomI18nService,
   ) {}
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
   async login(@Body() loginDto: LoginAdminDto) {
     const result = await this.adminsAuthService.login(loginDto);
-    return this.responseService.success('msg', result);
+    return this.responseService.success(
+      this.i18n.tr(TranslationKeys.login_success),
+      result,
+    );
   }
 
   @Post('check-email')
@@ -42,7 +48,7 @@ export class AdminsAuthController {
   async checkEmail(@Body() checkEmailDto: CheckEmailDto) {
     await this.adminsAuthService.checkEmail(checkEmailDto);
     return this.responseService.success(
-      'msg email check success and we sent verify code ',
+      this.i18n.tr(TranslationKeys.verification_code_sent),
     );
   }
 
@@ -50,14 +56,18 @@ export class AdminsAuthController {
   @HttpCode(HttpStatus.OK)
   async verifyCode(@Body() verifyCodeDto: VerifyCodeDto) {
     await this.adminsAuthService.verifyCode(verifyCodeDto);
-    return this.responseService.success('verified success');
+    return this.responseService.success(
+      this.i18n.tr(TranslationKeys.code_verified),
+    );
   }
 
   @Post('reset-password')
   @HttpCode(HttpStatus.OK)
   async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
     await this.adminsAuthService.resetPassword(resetPasswordDto);
-    return this.responseService.success('msg');
+    return this.responseService.success(
+      this.i18n.tr(TranslationKeys.password_reset),
+    );
   }
 
   @Post('change-password')
@@ -68,7 +78,9 @@ export class AdminsAuthController {
     @CurrentAdmin() admin: Admin,
   ) {
     await this.adminsAuthService.changePassword(admin, changePasswordDto);
-    return this.responseService.success('msg');
+    return this.responseService.success(
+      this.i18n.tr(TranslationKeys.password_changed),
+    );
   }
 
   @Get('enable-2fa')
@@ -76,7 +88,7 @@ export class AdminsAuthController {
   async enable(@CurrentAdmin() admin: Admin) {
     const result = await this.adminsAuthService.enable2fa(admin);
     return this.responseService.success(
-      '2FA enabled successfully, please go and verify your Authenticator App',
+      this.i18n.tr(TranslationKeys.two_factor_enabled),
       { admin: transformToDto(AdminAuthResponseDto, result) },
     );
   }
@@ -89,9 +101,12 @@ export class AdminsAuthController {
     @Body() otpCodeDto: OtpCodeDto,
   ) {
     const result = await this.adminsAuthService.verify2fa(admin, otpCodeDto);
-    return this.responseService.success('2FA verified successfully', {
-      admin: transformToDto(AdminAuthResponseDto, result),
-    });
+    return this.responseService.success(
+      this.i18n.tr(TranslationKeys.two_factor_verified),
+      {
+        admin: transformToDto(AdminAuthResponseDto, result),
+      },
+    );
   }
 
   @Patch('disable-2fa')
@@ -99,15 +114,21 @@ export class AdminsAuthController {
   @UseGuards(JwtAuthAdminGuard)
   async disable2fa(@CurrentAdmin() admin: Admin) {
     const result = await this.adminsAuthService.disable2fa(admin);
-    return this.responseService.success('2FA disabled successfully', {
-      admin: transformToDto(AdminAuthResponseDto, result),
-    });
+    return this.responseService.success(
+      this.i18n.tr(TranslationKeys.two_factor_disabled),
+      {
+        admin: transformToDto(AdminAuthResponseDto, result),
+      },
+    );
   }
 
   @Post('login-with-otp')
   @HttpCode(HttpStatus.OK)
   async loginWithOtp(@Body() loginWithOtpDto: LoginWithOtpDto) {
     const result = await this.adminsAuthService.loginWithOtp(loginWithOtpDto);
-    return this.responseService.success('2FA disabled successfully', result);
+    return this.responseService.success(
+      this.i18n.tr(TranslationKeys.otp_login_success),
+      result,
+    );
   }
 }

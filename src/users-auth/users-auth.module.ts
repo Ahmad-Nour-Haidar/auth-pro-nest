@@ -6,7 +6,7 @@ import { UserLocalStrategy } from './strategies/user-local.strategy';
 import { User } from '../users/entities/user.entity';
 import { UsersModule } from '../users/users.module';
 import { JwtUserStrategy } from './strategies/jwt-user.strategy';
-import { GoogleAuthService } from './google-auth.service';
+import { GoogleAuthService } from './services/google-auth.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([User]), UsersModule],

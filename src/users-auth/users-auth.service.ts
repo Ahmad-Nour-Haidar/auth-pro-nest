@@ -29,8 +29,10 @@ import { CreateMethod } from '../users/enums/create-method.enum';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { UserAuthResponseDto } from './dto/user-auth-response.dto';
 import { GoogleSignInDto } from './dto/google-sign-in.dto';
-import { GoogleAuthService } from './google-auth.service';
+import { GoogleAuthService } from './services/google-auth.service';
 import { RandomService } from '../common/services/random.service';
+import { TranslationKeys } from '../i18n/translation-keys';
+import { CustomI18nService } from '../common/services/custom-i18n.service';
 
 @Injectable()
 export class UsersAuthService {
@@ -44,6 +46,7 @@ export class UsersAuthService {
     private readonly twoFactorAuthService: TwoFactorAuthService,
     private readonly googleAuthService: GoogleAuthService,
     private readonly randomService: RandomService,
+    private readonly i18n: CustomI18nService,
   ) {}
 
   async register(registerUserDto: RegisterUserDto): Promise<User> {
@@ -83,16 +86,20 @@ export class UsersAuthService {
     });
 
     if (!(await this.bcryptService.compare(password, user.password))) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException(
+        this.i18n.tr(TranslationKeys.invalid_credentials),
+      );
     }
 
     if (!user.verified_at) {
-      throw new ForbiddenException('This account has not been verified.');
+      throw new ForbiddenException(
+        this.i18n.tr(TranslationKeys.account_not_verified),
+      );
     }
 
     if (user.two_factor_verified_at) {
       throw new HttpException(
-        'Login successful. Two-Factor Authentication is enabled. Please log in using your OTP code.',
+        this.i18n.tr(TranslationKeys.two_factor_authentication_enabled),
         HttpStatus.ACCEPTED,
       );
     }
@@ -136,7 +143,9 @@ export class UsersAuthService {
     });
 
     if (user.verify_code !== verifyCodeDto.code) {
-      throw new BadRequestException('Invalid verification code');
+      throw new BadRequestException(
+        this.i18n.tr(TranslationKeys.invalid_verification_code),
+      );
     }
 
     user.verified_at = new Date();
@@ -151,7 +160,9 @@ export class UsersAuthService {
     const user = await this.getUserByEmailOrUsername({ email, username });
 
     if (user.verify_code !== code) {
-      throw new BadRequestException('Invalid verification code');
+      throw new BadRequestException(
+        this.i18n.tr(TranslationKeys.invalid_verification_code),
+      );
     }
 
     // Hash the password
@@ -175,7 +186,9 @@ export class UsersAuthService {
     );
 
     if (!isMatch) {
-      throw new BadRequestException('Old password is incorrect');
+      throw new BadRequestException(
+        this.i18n.tr(TranslationKeys.old_password_incorrect),
+      );
     }
 
     user.password = await this.bcryptService.hash(changePasswordDto.password);
@@ -187,15 +200,15 @@ export class UsersAuthService {
   async enable2fa(user: User): Promise<User> {
     if (user.two_factor_verified_at) {
       throw new ConflictException(
-        'Two-factor authentication is already enabled. If you want to reset it, please disable it first.',
+        this.i18n.tr(TranslationKeys.two_factor_already_enabled),
       );
     }
 
     const secret = this.twoFactorAuthService.generateSecret(user.email);
 
-    user.two_fa_enabled_at = new Date();
+    user.two_factor_enabled_at = new Date();
     user.two_factor_secret = secret.base32;
-    user.qr_code_image_url = await this.twoFactorAuthService.generateQRCode(
+    user.two_factor_qr_code = await this.twoFactorAuthService.generateQRCode(
       secret.otpauth_url,
     );
 
@@ -203,15 +216,15 @@ export class UsersAuthService {
   }
 
   async verify2fa(user: User, otpCodeDto: OtpCodeDto): Promise<User> {
-    if (!user.two_fa_enabled_at || !user.two_factor_secret) {
+    if (!user.two_factor_enabled_at || !user.two_factor_secret) {
       // 2FA setup is incomplete
       throw new ConflictException(
-        'Two-factor authentication setup is incomplete. Disable and re-enable.',
+        this.i18n.tr(TranslationKeys.two_factor_authentication_incomplete),
       );
     }
     if (user.two_factor_verified_at) {
       throw new ConflictException(
-        'Two-factor authentication is already verified.',
+        this.i18n.tr(TranslationKeys.two_factor_already_verified),
       );
     }
 
@@ -221,7 +234,9 @@ export class UsersAuthService {
     );
 
     if (!isValid) {
-      throw new BadRequestException('Invalid 2FA code');
+      throw new BadRequestException(
+        this.i18n.tr(TranslationKeys.invalid_2fa_code),
+      );
     }
 
     user.two_factor_verified_at = new Date();
@@ -232,7 +247,7 @@ export class UsersAuthService {
     if (!user.two_factor_verified_at) {
       // 2FA setup is incomplete
       throw new ConflictException(
-        'Two-factor authentication setup is incomplete or already disabled.',
+        this.i18n.tr(TranslationKeys.two_factor_authentication_disabled),
       );
     }
 
@@ -240,15 +255,15 @@ export class UsersAuthService {
       { id: user.id },
       {
         two_factor_secret: null,
-        two_fa_enabled_at: null,
+        two_factor_enabled_at: null,
         two_factor_verified_at: null,
-        qr_code_image_url: null,
+        two_factor_qr_code: null,
       },
     );
     user.two_factor_secret = null;
-    user.two_fa_enabled_at = null;
+    user.two_factor_enabled_at = null;
     user.two_factor_verified_at = null;
-    user.qr_code_image_url = null;
+    user.two_factor_qr_code = null;
     return user;
   }
 
@@ -260,13 +275,13 @@ export class UsersAuthService {
 
     if (!user.verified_at) {
       throw new ForbiddenException(
-        'This account is not verified. Please complete the verification process.',
+        this.i18n.tr(TranslationKeys.account_not_verified),
       );
     }
 
     if (!user.two_factor_verified_at) {
       throw new BadRequestException(
-        'Two-factor authentication (2FA) is not enabled for this account.',
+        this.i18n.tr(TranslationKeys.two_fa_not_enabled),
       );
     }
 
@@ -276,7 +291,9 @@ export class UsersAuthService {
     );
 
     if (!isValid) {
-      throw new BadRequestException('Invalid 2FA code');
+      throw new BadRequestException(
+        this.i18n.tr(TranslationKeys.invalid_2fa_code),
+      );
     }
 
     user.last_login_at = new Date();
@@ -303,15 +320,21 @@ export class UsersAuthService {
     // If the user exists, treat it as a login
     if (user) {
       if (user.deleted_at) {
-        throw new ForbiddenException('This account has been deleted.');
+        throw new ForbiddenException(
+          this.i18n.tr(TranslationKeys.account_deleted),
+        );
       }
 
       if (user.blocked_at) {
-        throw new ForbiddenException('This account has been blocked.');
+        throw new ForbiddenException(
+          this.i18n.tr(TranslationKeys.account_blocked),
+        );
       }
 
       if (!user.verified_at) {
-        throw new ForbiddenException('This account has not been verified.');
+        throw new ForbiddenException(
+          this.i18n.tr(TranslationKeys.account_not_verified),
+        );
       }
 
       // Update last login timestamp
@@ -369,7 +392,9 @@ export class UsersAuthService {
     const { email, username } = identifier;
 
     if (!email && !username) {
-      throw new UnauthorizedException('Email or username must be provided.');
+      throw new UnauthorizedException(
+        this.i18n.tr(TranslationKeys.email_or_username_required),
+      );
     }
 
     const user = await this.usersRepository.findOne({
@@ -377,15 +402,21 @@ export class UsersAuthService {
     });
 
     if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException(
+        this.i18n.tr(TranslationKeys.invalid_credentials),
+      );
     }
 
     if (user.deleted_at) {
-      throw new ForbiddenException('This account has been deleted.');
+      throw new ForbiddenException(
+        this.i18n.tr(TranslationKeys.account_deleted),
+      );
     }
 
     if (user.blocked_at) {
-      throw new ForbiddenException('This account has been blocked.');
+      throw new ForbiddenException(
+        this.i18n.tr(TranslationKeys.account_blocked),
+      );
     }
 
     return user;

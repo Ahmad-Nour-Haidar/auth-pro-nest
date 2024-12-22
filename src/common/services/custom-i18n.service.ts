@@ -8,7 +8,7 @@ export class CustomI18nService {
 
   tr(key: string, options: TranslateOptions = {}): string {
     const lang = I18nContext.current().lang;
-    key = `translations.${key}`;
+    // key = `translations.${key}`;
     return this.i18n.t(key, { lang, ...options });
   }
 }

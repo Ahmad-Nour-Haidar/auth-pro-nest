@@ -20,24 +20,30 @@ import { RolesGuard } from '../common/guards/roles.guard';
 import { UpdateMeAdminDto } from './dto/update-me-admin.dto';
 import { JwtAuthAdminGuard } from '../admins-auth/guards/jwt-auth-admin.guard';
 import { LodashService } from '../common/services/lodash.service';
+import { TranslationKeys } from '../i18n/translation-keys';
+import { CustomI18nService } from '../common/services/custom-i18n.service';
 
 @Controller('admins')
-@UseGuards(RolesGuard)
-@UseGuards(JwtAuthAdminGuard)
+@UseGuards(JwtAuthAdminGuard, RolesGuard)
+// @UseGuards()
 export class AdminsController {
   constructor(
     private readonly adminsService: AdminsService,
     private readonly responseService: ResponseService,
     private readonly lodashService: LodashService,
+    private readonly i18n: CustomI18nService,
   ) {}
 
   @Post()
   @SuperAdminOnly()
   async create(@Body() createAdminDto: CreateAdminDto) {
     const admin = await this.adminsService.create(createAdminDto);
-    return this.responseService.success('Admin created successfully', {
-      admin: transformToDto(AdminResponseDto, admin),
-    });
+    return this.responseService.success(
+      this.i18n.tr(TranslationKeys.admin_created),
+      {
+        admin: transformToDto(AdminResponseDto, admin),
+      },
+    );
   }
 
   @Patch('me')
@@ -49,14 +55,16 @@ export class AdminsController {
       admin.id,
       updateMeAdminDto,
     );
-
-    return this.responseService.success('msg', {
-      admin: this.lodashService.omitKeys(updatedAdmin, [
-        'password',
-        'password_changed_at',
-        'verify_code',
-      ]),
-    });
+    return this.responseService.success(
+      this.i18n.tr(TranslationKeys.admin_me),
+      {
+        admin: this.lodashService.omitKeys(updatedAdmin, [
+          'password',
+          'password_changed_at',
+          'verify_code',
+        ]),
+      },
+    );
   }
 
   @Patch(':id')
@@ -66,80 +74,106 @@ export class AdminsController {
     @Body() updateAdminDto: UpdateAdminDto,
   ) {
     const updatedAdmin = await this.adminsService.update(id, updateAdminDto);
-    return this.responseService.success('Admin updated successfully', {
-      admin: transformToDto(AdminResponseDto, updatedAdmin),
-    });
+    return this.responseService.success(
+      this.i18n.tr(TranslationKeys.admin_updated),
+      {
+        admin: transformToDto(AdminResponseDto, updatedAdmin),
+      },
+    );
   }
 
   @Get()
   @SuperAdminOnly()
   async findAll() {
     const admins = await this.adminsService.findAll();
-    return this.responseService.success('Admins retrieved successfully', {
-      admins: admins.map((admin) => transformToDto(AdminResponseDto, admin)),
-    });
+    return this.responseService.success(
+      this.i18n.tr(TranslationKeys.admins_retrieved),
+      {
+        admins: admins.map((admin) => transformToDto(AdminResponseDto, admin)),
+      },
+    );
   }
 
   @Get('me')
   async me(@CurrentAdmin() admin: Admin) {
-    return this.responseService.success('msg', {
-      admin: this.lodashService.omitKeys(admin, [
-        'password',
-        'password_changed_at',
-        'verify_code',
-      ]),
-    });
+    return this.responseService.success(
+      this.i18n.tr(TranslationKeys.admin_me),
+      {
+        admin: this.lodashService.omitKeys(admin, [
+          'password',
+          'password_changed_at',
+          'verify_code',
+        ]),
+      },
+    );
   }
 
   @Get(':id')
   @SuperAdminOnly()
   async findOne(@UUIDV4Param() id: string) {
     const admin = await this.adminsService.findOne(id);
-    return this.responseService.success('Admin retrieved successfully', {
-      admin: transformToDto(AdminResponseDto, admin),
-    });
+    return this.responseService.success(
+      this.i18n.tr(TranslationKeys.admin_retrieved),
+      {
+        admin: transformToDto(AdminResponseDto, admin),
+      },
+    );
   }
 
   @Delete(':id')
   @SuperAdminOnly()
   async delete(@UUIDV4Param() id: string) {
     const deletedAdmin = await this.adminsService.softDelete(id);
-    return this.responseService.success('Admin soft deleted successfully', {
-      admin: transformToDto(AdminResponseDto, deletedAdmin),
-    });
+    return this.responseService.success(
+      this.i18n.tr(TranslationKeys.admin_deleted),
+      {
+        admin: transformToDto(AdminResponseDto, deletedAdmin),
+      },
+    );
   }
 
   @Patch('/restore/:id')
   @SuperAdminOnly()
   async restore(@UUIDV4Param() id: string) {
-    const restoredSuperAdmin = await this.adminsService.restore(id);
-    return this.responseService.success('Admin restored successfully', {
-      admin: transformToDto(AdminResponseDto, restoredSuperAdmin),
-    });
+    const restoredAdmin = await this.adminsService.restore(id);
+    return this.responseService.success(
+      this.i18n.tr(TranslationKeys.admin_restored),
+      {
+        admin: transformToDto(AdminResponseDto, restoredAdmin),
+      },
+    );
   }
 
   @Delete('/hard-delete/:id')
   @SuperAdminOnly()
   async hardDelete(@UUIDV4Param() id: string) {
     await this.adminsService.hardDelete(id);
-    return this.responseService.success('Admin hard deleted successfully');
+    return this.responseService.success(
+      this.i18n.tr(TranslationKeys.admin_hard_deleted),
+    );
   }
 
   @Patch('/block/:id')
   @SuperAdminOnly()
   async block(@UUIDV4Param() id: string) {
     const admin = await this.adminsService.blockAdmin(id);
-    return this.responseService.success('Admin blocked successfully', {
-      admin: transformToDto(AdminResponseDto, admin),
-    });
+    return this.responseService.success(
+      this.i18n.tr(TranslationKeys.admin_blocked),
+      {
+        admin: transformToDto(AdminResponseDto, admin),
+      },
+    );
   }
 
   @Patch('/unblock/:id')
   @SuperAdminOnly()
   async unblock(@UUIDV4Param() id: string) {
     const updatedAdmin = await this.adminsService.unblockAdmin(id);
-    return this.responseService.success('Admin unblocked successfully', {
-      admin: transformToDto(AdminResponseDto, updatedAdmin),
-    });
+    return this.responseService.success(
+      this.i18n.tr(TranslationKeys.admin_unblocked),
+      {
+        admin: transformToDto(AdminResponseDto, updatedAdmin),
+      },
+    );
   }
 }

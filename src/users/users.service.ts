@@ -14,6 +14,8 @@ import { Roles } from '../admins/enums/roles.enum';
 import { CreateMethod } from './enums/create-method.enum';
 import { MailService } from '../common/services/mail.service';
 import { RandomService } from '../common/services/random.service';
+import { TranslationKeys } from '../i18n/translation-keys';
+import { CustomI18nService } from '../common/services/custom-i18n.service';
 
 @Injectable()
 export class UsersService {
@@ -23,6 +25,7 @@ export class UsersService {
     private readonly bcryptService: BcryptService,
     private readonly mailService: MailService,
     private readonly randomService: RandomService,
+    private readonly i18n: CustomI18nService,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
@@ -70,10 +73,12 @@ export class UsersService {
       if (error.code === '23505') {
         // Unique constraint violation error code for PostgresSQL
         if (error.detail.includes('email')) {
-          throw new ConflictException('Email already in use');
+          throw new ConflictException(
+            this.i18n.tr(TranslationKeys.email_in_use),
+          );
         }
         if (error.detail.includes('username')) {
-          throw new ConflictException('Username already in use');
+          this.i18n.tr(TranslationKeys.username_in_use);
         }
       }
       throw error; // Re-throw the error if it's not a unique constraint violation
@@ -83,7 +88,11 @@ export class UsersService {
   async softDelete(id: string): Promise<User> {
     const user = await this.getUserById({ id, withDeleted: true });
     if (user.deleted_at) {
-      throw new ConflictException(`User with ID ${id} is already soft-deleted`);
+      throw new ConflictException(
+        this.i18n.tr(TranslationKeys.account_already_soft_deleted, {
+          args: { id },
+        }),
+      );
     }
     user.deleted_at = new Date();
     return this.usersRepository.save(user);
@@ -93,7 +102,11 @@ export class UsersService {
     const user = await this.getUserById({ id, withDeleted: true });
 
     if (!user.deleted_at) {
-      throw new ConflictException(`User with ID ${id} is not soft deleted`);
+      throw new ConflictException(
+        this.i18n.tr(TranslationKeys.account_not_soft_deleted, {
+          args: { id },
+        }),
+      );
     }
 
     const result = await this.usersRepository.restore(id);
@@ -103,7 +116,9 @@ export class UsersService {
       return user;
     } else {
       throw new InternalServerErrorException(
-        `User with ID ${id} could not be restored due to a database error`,
+        this.i18n.tr(TranslationKeys.account_restore_error, {
+          args: { id },
+        }),
       );
     }
   }
@@ -116,7 +131,11 @@ export class UsersService {
   async blockUser(id: string): Promise<User> {
     const user = await this.getUserById({ id, withDeleted: true });
     if (user.blocked_at) {
-      throw new ConflictException(`User with ID ${id} is already blocked`);
+      throw new ConflictException(
+        this.i18n.tr(TranslationKeys.account_already_blocked, {
+          args: { id },
+        }),
+      );
     }
     user.blocked_at = new Date();
 
@@ -126,7 +145,11 @@ export class UsersService {
   async unblockUser(id: string): Promise<User> {
     const user = await this.getUserById({ id, withDeleted: true });
     if (!user.blocked_at) {
-      throw new ConflictException(`User with ID ${id} is not blocked`);
+      throw new ConflictException(
+        this.i18n.tr(TranslationKeys.account_not_blocked, {
+          args: { id },
+        }),
+      );
     }
     user.blocked_at = null;
     return this.usersRepository.save(user);
@@ -142,10 +165,12 @@ export class UsersService {
 
     if (existingUser) {
       if (existingUser.email === createUserDto.email) {
-        throw new ConflictException('Email already in use'); // Email conflict
+        throw new ConflictException(this.i18n.tr(TranslationKeys.email_in_use));
       }
       if (existingUser.username === createUserDto.username) {
-        throw new ConflictException('Username already in use'); // Username conflict
+        throw new ConflictException(
+          this.i18n.tr(TranslationKeys.username_in_use),
+        );
       }
     }
   }
@@ -163,7 +188,11 @@ export class UsersService {
       withDeleted: withDeleted,
     });
     if (!user) {
-      throw new NotFoundException(`User with ID ${id} not found`);
+      throw new NotFoundException(
+        this.i18n.tr(TranslationKeys.account_not_found, {
+          args: { id },
+        }),
+      );
     }
     return user;
   }

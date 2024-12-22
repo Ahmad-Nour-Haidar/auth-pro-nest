@@ -13,6 +13,8 @@ import { isSuperAdmin, Roles } from './enums/roles.enum';
 import { Repository } from 'typeorm';
 import { MailService } from '../common/services/mail.service';
 import { RandomService } from '../common/services/random.service';
+import { CustomI18nService } from '../common/services/custom-i18n.service';
+import { TranslationKeys } from '../i18n/translation-keys';
 
 @Injectable()
 export class AdminsService {
@@ -22,6 +24,7 @@ export class AdminsService {
     private readonly bcryptService: BcryptService,
     private readonly mailService: MailService,
     private readonly randomService: RandomService,
+    private readonly i18n: CustomI18nService,
   ) {}
 
   async create(createAdminDto: CreateAdminDto): Promise<Admin> {
@@ -77,10 +80,14 @@ export class AdminsService {
       if (error.code === '23505') {
         // Unique constraint violation error code for PostgresSQL
         if (error.detail.includes('email')) {
-          throw new ConflictException('Email already in use');
+          throw new ConflictException(
+            this.i18n.tr(TranslationKeys.email_in_use),
+          );
         }
         if (error.detail.includes('username')) {
-          throw new ConflictException('Username already in use');
+          throw new ConflictException(
+            this.i18n.tr(TranslationKeys.username_in_use),
+          );
         }
       }
       throw error; // Re-throw the error if it's not a unique constraint violation
@@ -91,7 +98,9 @@ export class AdminsService {
     const admin = await this.getAdminById({ id, withDeleted: true });
     if (admin.deleted_at) {
       throw new ConflictException(
-        `Admin with ID ${id} is already soft-deleted`,
+        this.i18n.tr(TranslationKeys.account_already_soft_deleted, {
+          args: { id },
+        }),
       );
     }
     admin.deleted_at = new Date();
@@ -103,7 +112,11 @@ export class AdminsService {
     const admin = await this.getAdminById({ id, withDeleted: true });
 
     if (!admin.deleted_at) {
-      throw new ConflictException(`Admin with ID ${id} is not soft deleted`);
+      throw new ConflictException(
+        this.i18n.tr(TranslationKeys.account_not_soft_deleted, {
+          args: { id },
+        }),
+      );
     }
 
     // Restore the admin
@@ -114,7 +127,9 @@ export class AdminsService {
       return admin;
     } else {
       throw new InternalServerErrorException(
-        `Admin with ID ${id} could not be restored due to a database error`,
+        this.i18n.tr(TranslationKeys.account_restore_error, {
+          args: { id },
+        }),
       );
     }
   }
@@ -127,7 +142,11 @@ export class AdminsService {
   async blockAdmin(id: string): Promise<Admin> {
     const admin = await this.getAdminById({ id, withDeleted: true });
     if (admin.blocked_at) {
-      throw new ConflictException(`Admin with ID ${id} is already blocked`);
+      throw new ConflictException(
+        this.i18n.tr(TranslationKeys.account_already_blocked, {
+          args: { id },
+        }),
+      );
     }
     admin.blocked_at = new Date();
 
@@ -137,7 +156,11 @@ export class AdminsService {
   async unblockAdmin(id: string): Promise<Admin> {
     const admin = await this.getAdminById({ id, withDeleted: true });
     if (!admin.blocked_at) {
-      throw new ConflictException(`Admin with ID ${id} is not blocked`);
+      throw new ConflictException(
+        this.i18n.tr(TranslationKeys.account_not_blocked, {
+          args: { id },
+        }),
+      );
     }
     admin.blocked_at = null;
     return this.adminsRepository.save(admin);
@@ -155,10 +178,12 @@ export class AdminsService {
 
     if (existingAdmin) {
       if (existingAdmin.email === createAdminDto.email) {
-        throw new ConflictException('Email already in use'); // Email conflict
+        throw new ConflictException(this.i18n.tr(TranslationKeys.email_in_use));
       }
       if (existingAdmin.username === createAdminDto.username) {
-        throw new ConflictException('Username already in use'); // Username conflict
+        throw new ConflictException(
+          this.i18n.tr(TranslationKeys.username_in_use),
+        );
       }
     }
   }
@@ -175,7 +200,11 @@ export class AdminsService {
       withDeleted: withDeleted, // Include soft-deleted records if true
     });
     if (!admin) {
-      throw new NotFoundException(`Admin with ID ${id} not found`);
+      throw new NotFoundException(
+        this.i18n.tr(TranslationKeys.account_not_found, {
+          args: { id },
+        }),
+      );
     }
     return admin;
   }

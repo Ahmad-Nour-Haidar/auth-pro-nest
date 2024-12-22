@@ -62,7 +62,7 @@ export class Admin {
   verified_at?: Date;
 
   @Column({ type: 'timestamp', nullable: true })
-  two_fa_enabled_at: Date;
+  two_factor_enabled_at: Date;
 
   @Column({ type: 'varchar', nullable: true })
   two_factor_secret?: string;
@@ -71,5 +71,5 @@ export class Admin {
   two_factor_verified_at?: Date;
 
   @Column({ type: 'varchar', nullable: true })
-  qr_code_image_url?: string;
+  two_factor_qr_code?: string;
 }

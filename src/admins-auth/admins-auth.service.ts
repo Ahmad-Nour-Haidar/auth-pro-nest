@@ -25,6 +25,8 @@ import { OtpCodeDto } from '../common/dto/otp-code.dto';
 import { LoginWithOtpDto } from '../common/dto/login-with-otp.dto';
 import { AdminAuthResponseDto } from './dto/admin-auth-response.dto';
 import { RandomService } from '../common/services/random.service';
+import { CustomI18nService } from '../common/services/custom-i18n.service';
+import { TranslationKeys } from '../i18n/translation-keys';
 
 @Injectable()
 export class AdminsAuthService {
@@ -36,6 +38,7 @@ export class AdminsAuthService {
     private readonly mailService: MailService,
     private readonly twoFactorAuthService: TwoFactorAuthService,
     private readonly randomService: RandomService,
+    private readonly i18n: CustomI18nService,
   ) {}
 
   async login(loginDto: LoginAdminDto) {
@@ -47,16 +50,20 @@ export class AdminsAuthService {
     });
 
     if (!(await this.bcryptService.compare(password, admin.password))) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException(
+        this.i18n.tr(TranslationKeys.invalid_credentials),
+      );
     }
 
     if (!admin.verified_at) {
-      throw new ForbiddenException('This account has not been verified.');
+      throw new ForbiddenException(
+        this.i18n.tr(TranslationKeys.account_not_verified),
+      );
     }
 
     if (admin.two_factor_verified_at) {
       throw new HttpException(
-        'Login successful. Two-Factor Authentication is enabled. Please log in using your OTP code.',
+        this.i18n.tr(TranslationKeys.two_factor_authentication_enabled),
         HttpStatus.ACCEPTED,
       );
     }
@@ -100,7 +107,9 @@ export class AdminsAuthService {
     });
 
     if (admin.verify_code !== verifyCodeDto.code) {
-      throw new BadRequestException('Invalid verification code');
+      throw new BadRequestException(
+        this.i18n.tr(TranslationKeys.invalid_verification_code),
+      );
     }
 
     admin.verified_at = new Date();
@@ -115,7 +124,9 @@ export class AdminsAuthService {
     const admin = await this.getAdminByEmailOrUsername({ email, username });
 
     if (admin.verify_code !== code) {
-      throw new BadRequestException('Invalid verification code');
+      throw new BadRequestException(
+        this.i18n.tr(TranslationKeys.invalid_verification_code),
+      );
     }
 
     // Hash the password
@@ -139,7 +150,9 @@ export class AdminsAuthService {
     );
 
     if (!isMatch) {
-      throw new BadRequestException('Old password is incorrect');
+      throw new BadRequestException(
+        this.i18n.tr(TranslationKeys.old_password_incorrect),
+      );
     }
     admin.password = await this.bcryptService.hash(changePasswordDto.password);
     admin.password_changed_at = new Date();
@@ -150,15 +163,15 @@ export class AdminsAuthService {
   async enable2fa(admin: Admin): Promise<Admin> {
     if (admin.two_factor_verified_at) {
       throw new ConflictException(
-        'Two-factor authentication is already enabled. If you want to reset it, please disable it first.',
+        this.i18n.tr(TranslationKeys.two_factor_already_enabled),
       );
     }
 
     const secret = this.twoFactorAuthService.generateSecret(admin.email);
 
-    admin.two_fa_enabled_at = new Date();
+    admin.two_factor_enabled_at = new Date();
     admin.two_factor_secret = secret.base32;
-    admin.qr_code_image_url = await this.twoFactorAuthService.generateQRCode(
+    admin.two_factor_qr_code = await this.twoFactorAuthService.generateQRCode(
       secret.otpauth_url,
     );
 
@@ -166,15 +179,15 @@ export class AdminsAuthService {
   }
 
   async verify2fa(admin: Admin, otpCodeDto: OtpCodeDto): Promise<Admin> {
-    if (!admin.two_fa_enabled_at || !admin.two_factor_secret) {
+    if (!admin.two_factor_enabled_at || !admin.two_factor_secret) {
       // 2FA setup is incomplete
       throw new ConflictException(
-        'Two-factor authentication setup is incomplete. Disable and re-enable.',
+        this.i18n.tr(TranslationKeys.two_factor_authentication_incomplete),
       );
     }
     if (admin.two_factor_verified_at) {
       throw new ConflictException(
-        'Two-factor authentication is already verified.',
+        this.i18n.tr(TranslationKeys.two_factor_already_verified),
       );
     }
 
@@ -184,7 +197,9 @@ export class AdminsAuthService {
     );
 
     if (!isValid) {
-      throw new BadRequestException('Invalid 2FA code');
+      throw new BadRequestException(
+        this.i18n.tr(TranslationKeys.invalid_2fa_code),
+      );
     }
 
     admin.two_factor_verified_at = new Date();
@@ -195,7 +210,7 @@ export class AdminsAuthService {
     if (!admin.two_factor_verified_at) {
       // 2FA setup is incomplete
       throw new ConflictException(
-        'Two-factor authentication setup is incomplete or already disabled.',
+        this.i18n.tr(TranslationKeys.two_factor_authentication_disabled),
       );
     }
 
@@ -203,15 +218,15 @@ export class AdminsAuthService {
       { id: admin.id },
       {
         two_factor_secret: null,
-        two_fa_enabled_at: null,
+        two_factor_enabled_at: null,
         two_factor_verified_at: null,
-        qr_code_image_url: null,
+        two_factor_qr_code: null,
       },
     );
     admin.two_factor_secret = null;
-    admin.two_fa_enabled_at = null;
+    admin.two_factor_enabled_at = null;
     admin.two_factor_verified_at = null;
-    admin.qr_code_image_url = null;
+    admin.two_factor_qr_code = null;
     return admin;
   }
 
@@ -223,13 +238,13 @@ export class AdminsAuthService {
 
     if (!admin.verified_at) {
       throw new ForbiddenException(
-        'This account is not verified. Please complete the verification process.',
+        this.i18n.tr(TranslationKeys.account_not_verified),
       );
     }
 
     if (!admin.two_factor_verified_at) {
       throw new BadRequestException(
-        'Two-factor authentication (2FA) is not enabled for this account.',
+        this.i18n.tr(TranslationKeys.two_fa_not_enabled),
       );
     }
 
@@ -239,7 +254,9 @@ export class AdminsAuthService {
     );
 
     if (!isValid) {
-      throw new BadRequestException('Invalid 2FA code');
+      throw new BadRequestException(
+        this.i18n.tr(TranslationKeys.invalid_2fa_code),
+      );
     }
 
     admin.last_login_at = new Date();
@@ -268,7 +285,9 @@ export class AdminsAuthService {
     const { email, username } = identifier;
 
     if (!email && !username) {
-      throw new UnauthorizedException('Email or username must be provided.');
+      throw new UnauthorizedException(
+        this.i18n.tr(TranslationKeys.email_or_username_required),
+      );
     }
 
     const admin = await this.adminsRepository.findOne({
@@ -276,15 +295,21 @@ export class AdminsAuthService {
     });
 
     if (!admin) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException(
+        this.i18n.tr(TranslationKeys.invalid_credentials),
+      );
     }
 
     if (admin.deleted_at) {
-      throw new ForbiddenException('This account has been deleted.');
+      throw new ForbiddenException(
+        this.i18n.tr(TranslationKeys.account_deleted),
+      );
     }
 
     if (admin.blocked_at) {
-      throw new ForbiddenException('This account has been blocked.');
+      throw new ForbiddenException(
+        this.i18n.tr(TranslationKeys.account_blocked),
+      );
     }
 
     return admin;
