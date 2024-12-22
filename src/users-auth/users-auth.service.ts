@@ -376,6 +376,11 @@ export class UsersAuthService {
     };
   }
 
+  async logout(user: User) {
+    user.last_logout_at = new Date();
+    return this.usersRepository.save(user);
+  }
+
   async validateUser(email: string, password: string): Promise<any> {
     const user = await this.usersRepository.findOneBy({ email });
     if (user && (await this.bcryptService.compare(password, user.password))) {

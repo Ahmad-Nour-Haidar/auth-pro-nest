@@ -153,4 +153,13 @@ export class UsersAuthController {
       },
     );
   }
+
+  @Post('logout')
+  @HttpCode(HttpStatus.OK)
+  async logout(@CurrentUser() user: User) {
+    await this.usersAuthService.logout(user);
+    return this.responseService.success(
+      this.i18n.tr(TranslationKeys.logged_out_successfully),
+    );
+  }
 }

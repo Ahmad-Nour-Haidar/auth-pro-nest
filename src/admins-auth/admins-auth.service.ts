@@ -269,6 +269,11 @@ export class AdminsAuthService {
     return { token, admin: transformToDto(AdminAuthResponseDto, admin) };
   }
 
+  async logout(admin: Admin) {
+    admin.last_logout_at = new Date();
+    return this.adminsRepository.save(admin);
+  }
+
   async validateAdmin(email: string, password: string): Promise<any> {
     const admin = await this.adminsRepository.findOneBy({ email });
     if (admin && (await this.bcryptService.compare(password, admin.password))) {

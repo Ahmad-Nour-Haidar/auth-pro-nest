@@ -131,4 +131,13 @@ export class AdminsAuthController {
       result,
     );
   }
+
+  @Post('logout')
+  @HttpCode(HttpStatus.OK)
+  async logout(@CurrentAdmin() admin: Admin) {
+    await this.adminsAuthService.logout(admin);
+    return this.responseService.success(
+      this.i18n.tr(TranslationKeys.logged_out_successfully),
+    );
+  }
 }
