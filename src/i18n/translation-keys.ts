@@ -83,4 +83,5 @@ export class TranslationKeys {
   static action_performed = 'translations.action_performed';
   static registration_successful = 'translations.registration_successful';
   static google_sign_in_successful = 'translations.google_sign_in_successful';
+  static language_or_device_token_required = 'translations.language_or_device_token_required';
 }

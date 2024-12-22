@@ -77,5 +77,6 @@
   "account_updated": "تم تحديث حسابك بنجاح",
   "action_performed": "تم تنفيذ الإجراء بنجاح",
   "registration_successful": "تم التسجيل بنجاح، أهلاً وسهلاً!",
-  "google_sign_in_successful": "تم تسجيل الدخول عبر جوجل بنجاح"
+  "google_sign_in_successful": "تم تسجيل الدخول عبر جوجل بنجاح",
+  "language_or_device_token_required": "يجب تقديم لغة أو رمز جهاز."
 }

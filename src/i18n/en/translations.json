@@ -77,5 +77,6 @@
   "account_updated": "Your account has been updated successfully",
   "action_performed": "Action performed successfully",
   "registration_successful": "Registration successfully, Welcome!",
-  "google_sign_in_successful": "Google sign in successfully"
+  "google_sign_in_successful": "Google sign in successfully",
+  "language_or_device_token_required": "You must provide either a language or a device token."
 }
