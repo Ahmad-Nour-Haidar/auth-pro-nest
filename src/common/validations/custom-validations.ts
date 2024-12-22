@@ -13,34 +13,53 @@ import {
 } from 'class-validator';
 import { Roles } from '../../admins/enums/roles.enum';
 import { applyDecorators } from '@nestjs/common';
+import { i18nValidationMessage } from 'nestjs-i18n';
+import { TranslationKeys } from '../../i18n/translation-keys';
 
 export function IsValidEmail(validationOptions?: ValidationOptions) {
   return applyDecorators(
     IsEmail(
       {},
-      { message: 'Email must be a valid email address', ...validationOptions },
+      {
+        message: i18nValidationMessage(TranslationKeys.email_invalid),
+        ...validationOptions,
+      },
     ),
     MaxLength(255, {
-      message: 'Email must not exceed 255 characters',
+      message: i18nValidationMessage(TranslationKeys.email_too_long),
       ...validationOptions,
     }),
-    IsString({ message: 'Email must be a string', ...validationOptions }),
-    IsNotEmpty({ message: 'Email is required', ...validationOptions }),
+    IsString({
+      message: i18nValidationMessage(TranslationKeys.email_not_string),
+      ...validationOptions,
+    }),
+    IsNotEmpty({
+      message: i18nValidationMessage(TranslationKeys.email_required),
+      ...validationOptions,
+    }),
   );
 }
 
 export function IsValidUsername(validationOptions?: ValidationOptions) {
   return applyDecorators(
     Matches(/^[a-zA-Z0-9]+$/, {
-      message: 'Username can only contain letters and numbers',
+      message: i18nValidationMessage(
+        TranslationKeys.username_invalid_characters,
+      ),
       ...validationOptions,
     }),
-    MaxLength(255, {
-      message: 'Username must not exceed 255 characters',
+    Length(3, 255, {
+      message: i18nValidationMessage(TranslationKeys.username_length),
       ...validationOptions,
     }),
-    IsString({ message: 'Username must be a string', ...validationOptions }),
-    IsNotEmpty({ message: 'Username is required', ...validationOptions }),
+    IsString({
+      message: i18nValidationMessage(TranslationKeys.username_not_string),
+      ...validationOptions,
+    }),
+    IsNotEmpty({
+      message: i18nValidationMessage(TranslationKeys.username_required),
+      ...validationOptions,
+    }),
   );
 }
 
@@ -49,13 +68,31 @@ export function IsValidPassword(validationOptions?: ValidationOptions) {
     Matches(
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
       {
-        message:
-          'Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character',
+        message: i18nValidationMessage(TranslationKeys.password_weak),
         ...validationOptions,
       },
     ),
-    IsNotEmpty({ message: 'Password is required', ...validationOptions }),
-    IsString({ message: 'Password must be a string', ...validationOptions }),
+    IsNotEmpty({
+      message: i18nValidationMessage(TranslationKeys.password_required),
+      ...validationOptions,
+    }),
+    IsString({
+      message: i18nValidationMessage(TranslationKeys.password_not_string),
+      ...validationOptions,
+    }),
+  );
+}
+
+export function IsValidFullName(validationOptions?: ValidationOptions) {
+  return applyDecorators(
+    Length(1, 255, {
+      message: i18nValidationMessage(TranslationKeys.fullname_length),
+      ...validationOptions,
+    }),
+    IsString({
+      message: i18nValidationMessage(TranslationKeys.fullname_not_string),
+      ...validationOptions,
+    }),
   );
 }
 
@@ -63,35 +100,53 @@ export function IsValidCode6(validationOptions?: ValidationOptions) {
   return applyDecorators(
     IsString(),
     Length(6, 6, {
-      message: 'Verification code must be 6 characters long',
+      message: i18nValidationMessage(TranslationKeys.code6_length),
       ...validationOptions,
     }),
     Matches(/^\d{6}$/, {
-      message: 'Verification code must be a 6-digit number',
+      message: i18nValidationMessage(TranslationKeys.code6_not_numeric),
       ...validationOptions,
     }),
   );
 }
 
 export function IsValidRoles({
-  notContains = [],
-}: { notContains?: Roles[] } = {}) {
-  // Default excluded roles
-  const defaultExcludedRoles = [Roles.superAdmin, Roles.user];
+  enumType = Roles, // Default to Roles, but can be passed dynamically
+  excludedRoles = [], // Exclusion array can be passed
+}: {
+  enumType: any;
+  excludedRoles?: any[];
+}) {
+  // Merge the default exclusions with any custom exclusions
+  const exclusions = [...excludedRoles];
 
-  // Merge the default roles with any custom exclusions
-  const exclusions = [...defaultExcludedRoles, ...notContains];
+  // Get the remaining allowed roles by filtering out the excluded roles from the enum
+  const allowedRoles = Object.values(enumType).filter(
+    (role) => !exclusions.includes(role),
+  );
 
-  return [
-    IsEnum(Roles, {
+  // Construct the dynamic exclusion message
+  const exclusionMessage = exclusions.length
+    ? i18nValidationMessage(TranslationKeys.roles_exclusion_message, {
+        roles: exclusions.join(', '),
+      })
+    : i18nValidationMessage(TranslationKeys.roles_no_exclusion_allowed);
+
+  return applyDecorators(
+    IsEnum(enumType, {
       each: true,
-      message: ({ value }) =>
-        `Invalid role value "${value}". Valid roles are: ${Object.values(Roles).join(', ')}`,
+      message: i18nValidationMessage(TranslationKeys.roles_invalid_values, {
+        allowedRoles: allowedRoles.join(', '),
+      }),
     }),
     ArrayNotContains(exclusions, {
-      message: `The following roles are not allowed: ${exclusions.join(', ')}`,
+      message: exclusionMessage,
     }),
-    ArrayMinSize(1, { message: 'Roles must have at least one role' }),
-    IsArray({ message: 'Roles must be an array' }),
-  ];
+    ArrayMinSize(1, {
+      message: i18nValidationMessage(TranslationKeys.roles_min_size),
+    }),
+    IsArray({
+      message: i18nValidationMessage(TranslationKeys.roles_not_array),
+    }),
+  );
 }

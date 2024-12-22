@@ -11,6 +11,10 @@ import { SuperAdminsModule } from './super-admins/super-admins.module';
 import { AdminsAuthModule } from './admins-auth/admins-auth.module';
 import { CommonModule } from './common/common.module';
 import { UsersAuthModule } from './users-auth/users-auth.module';
+import { AcceptLanguageResolver, I18nModule, QueryResolver } from 'nestjs-i18n';
+import * as path from 'path';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
 
 @Global()
 @Module({
@@ -21,6 +25,18 @@ import { UsersAuthModule } from './users-auth/users-auth.module';
       envFilePath:
         process.env.NODE_ENV === NodeEnv.production ? '.env.prod' : '.env.dev',
       validate,
+    }),
+
+    I18nModule.forRoot({
+      fallbackLanguage: 'ar',
+      loaderOptions: {
+        path: path.join(__dirname, '/i18n/'),
+        watch: true,
+      },
+      resolvers: [
+        { use: QueryResolver, options: ['lang'] },
+        AcceptLanguageResolver,
+      ],
     }),
 
     // JWT Module configuration
@@ -58,6 +74,7 @@ import { UsersAuthModule } from './users-auth/users-auth.module';
     ]),
 
     // Application modules
+    AppModule,
     AdminsModule,
     SuperAdminsModule,
     AdminsAuthModule,
@@ -65,6 +82,8 @@ import { UsersAuthModule } from './users-auth/users-auth.module';
     UsersAuthModule,
     CommonModule,
   ],
+  providers: [AppService],
+  controllers: [AppController],
   exports: [JwtModule, UsersAuthModule, AdminsAuthModule],
 })
 export class AppModule implements NestModule {

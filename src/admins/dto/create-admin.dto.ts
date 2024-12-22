@@ -1,20 +1,15 @@
-import {
-  ArrayMinSize,
-  ArrayNotContains,
-  IsArray,
-  IsDefined,
-  IsEnum,
-  IsOptional,
-  IsString,
-  MaxLength,
-} from 'class-validator';
+import { IsDefined, IsOptional } from 'class-validator';
 import { Roles } from '../enums/roles.enum';
 import { Match } from '../../common/decorators/match.decorator';
 import {
   IsValidEmail,
+  IsValidFullName,
   IsValidPassword,
+  IsValidRoles,
   IsValidUsername,
 } from '../../common/validations/custom-validations';
+import { i18nValidationMessage } from 'nestjs-i18n';
+import { TranslationKeys } from '../../i18n/translation-keys';
 
 export class CreateAdminDto {
   @IsValidEmail()
@@ -24,26 +19,23 @@ export class CreateAdminDto {
   username: string;
 
   @IsOptional()
-  @MaxLength(255, { message: 'Full name must not exceed 255 characters' })
-  @IsString({ message: 'Full name must be a string' })
+  @IsValidFullName()
   readonly full_name?: string;
 
   @IsValidPassword()
   password: string;
 
-  @IsDefined({ message: 'Confirm password is required' })
-  @Match('password', { message: 'Passwords do not match' })
+  @IsDefined({
+    message: i18nValidationMessage(TranslationKeys.confirm_password_required),
+  })
+  @Match('password', {
+    message: i18nValidationMessage(TranslationKeys.passwords_not_match),
+  })
   confirm_password: string;
 
-  @IsEnum(Roles, {
-    each: true,
-    message: ({ value }) =>
-      `Invalid role value "${value}". Valid roles are: ${Object.values(Roles).join(', ')}`,
+  @IsValidRoles({
+    enumType: Roles,
+    excludedRoles: [Roles.superAdmin, Roles.user],
   })
-  @ArrayNotContains([Roles.superAdmin, Roles.user], {
-    message: 'SuperAdmin role is not allowed',
-  })
-  @ArrayMinSize(1, { message: 'Roles must have at least one role' })
-  @IsArray({ message: 'Roles must be an array' })
   readonly roles: Roles[];
 }
