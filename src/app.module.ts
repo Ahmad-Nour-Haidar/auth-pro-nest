@@ -15,6 +15,7 @@ import { AcceptLanguageResolver, I18nModule, QueryResolver } from 'nestjs-i18n';
 import * as path from 'path';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { DeviceTokenModule } from './device-token/device-token.module';
 
 @Global()
 @Module({
@@ -81,6 +82,7 @@ import { AppService } from './app.service';
     UsersModule,
     UsersAuthModule,
     CommonModule,
+    DeviceTokenModule,
   ],
   providers: [AppService],
   controllers: [AppController],
