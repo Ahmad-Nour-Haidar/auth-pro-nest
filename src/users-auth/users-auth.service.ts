@@ -85,6 +85,12 @@ export class UsersAuthService {
       username,
     });
 
+    if (user.create_method === CreateMethod.google && !user.password) {
+      throw new ForbiddenException(
+        this.i18n.tr(TranslationKeys.google_linked_account),
+      );
+    }
+
     if (!(await this.bcryptService.compare(password, user.password))) {
       throw new UnauthorizedException(
         this.i18n.tr(TranslationKeys.invalid_credentials),

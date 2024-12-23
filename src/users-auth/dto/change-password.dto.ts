@@ -1,16 +1,23 @@
-import { IsDefined, IsNotEmpty, IsString } from 'class-validator';
-import { Match } from '../../common/decorators/match.decorator';
-import { IsValidPassword } from '../../common/validations/custom-validations';
+import { IsNotEmpty, IsString } from 'class-validator';
+import {
+  IsValidConfirmPassword,
+  IsValidPassword,
+} from '../../common/validations/custom-validations';
+import { i18nValidationMessage } from 'nestjs-i18n';
+import { TranslationKeys } from '../../i18n/translation-keys';
 
 export class ChangePasswordDto {
-  @IsNotEmpty({ message: 'Old Password is required' })
-  @IsString({ message: 'Old Password must be a string' })
+  @IsNotEmpty({
+    message: i18nValidationMessage(TranslationKeys.old_password_required),
+  })
+  @IsString({
+    message: i18nValidationMessage(TranslationKeys.old_password_string),
+  })
   old_password: string;
 
   @IsValidPassword()
   password: string;
 
-  @IsDefined({ message: 'Confirm password is required' })
-  @Match('password', { message: 'Passwords do not match' })
+  @IsValidConfirmPassword()
   confirm_password: string;
 }

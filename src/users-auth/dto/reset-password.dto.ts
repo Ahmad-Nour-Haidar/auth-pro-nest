@@ -1,8 +1,8 @@
-import { IsDefined, IsOptional } from 'class-validator';
-import { Match } from '../../common/decorators/match.decorator';
+import { IsOptional } from 'class-validator';
 import { AnyOf } from '../../common/validations/any-of';
 import {
   IsValidCode6,
+  IsValidConfirmPassword,
   IsValidEmail,
   IsValidPassword,
   IsValidUsername,
@@ -25,8 +25,7 @@ export class ResetPasswordDto {
   @IsValidPassword()
   password: string;
 
-  @IsDefined({ message: 'Confirm password is required' })
-  @Match('password', { message: 'Passwords do not match' })
+  @IsValidConfirmPassword()
   confirm_password: string;
 
   @IsValidCode6()

@@ -1,7 +1,6 @@
 import {
   Body,
   Controller,
-  Get,
   HttpCode,
   HttpStatus,
   Patch,
@@ -83,7 +82,7 @@ export class AdminsAuthController {
     );
   }
 
-  @Get('enable-2fa')
+  @Patch('enable-2fa')
   @UseGuards(JwtAuthAdminGuard)
   async enable(@CurrentAdmin() admin: Admin) {
     const result = await this.adminsAuthService.enable2fa(admin);
@@ -93,8 +92,7 @@ export class AdminsAuthController {
     );
   }
 
-  @Post('verify-2fa')
-  @HttpCode(HttpStatus.OK)
+  @Patch('verify-2fa')
   @UseGuards(JwtAuthAdminGuard)
   async verify2fa(
     @CurrentAdmin() admin: Admin,
@@ -134,6 +132,7 @@ export class AdminsAuthController {
 
   @Post('logout')
   @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthAdminGuard)
   async logout(@CurrentAdmin() admin: Admin) {
     await this.adminsAuthService.logout(admin);
     return this.responseService.success(

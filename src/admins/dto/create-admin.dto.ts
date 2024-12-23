@@ -1,22 +1,20 @@
-import { IsDefined, IsOptional } from 'class-validator';
+import { IsOptional } from 'class-validator';
 import { Roles } from '../enums/roles.enum';
-import { Match } from '../../common/decorators/match.decorator';
 import {
+  IsValidConfirmPassword,
   IsValidEmail,
   IsValidFullName,
   IsValidPassword,
   IsValidRoles,
   IsValidUsername,
 } from '../../common/validations/custom-validations';
-import { i18nValidationMessage } from 'nestjs-i18n';
-import { TranslationKeys } from '../../i18n/translation-keys';
 
 export class CreateAdminDto {
   @IsValidEmail()
-  email: string;
+  readonly email: string;
 
   @IsValidUsername()
-  username: string;
+  readonly username: string;
 
   @IsOptional()
   @IsValidFullName()
@@ -25,13 +23,8 @@ export class CreateAdminDto {
   @IsValidPassword()
   password: string;
 
-  @IsDefined({
-    message: i18nValidationMessage(TranslationKeys.confirm_password_required),
-  })
-  @Match('password', {
-    message: i18nValidationMessage(TranslationKeys.passwords_not_match),
-  })
-  confirm_password: string;
+  @IsValidConfirmPassword()
+  readonly confirm_password: string;
 
   @IsValidRoles({
     enumType: Roles,

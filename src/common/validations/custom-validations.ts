@@ -10,11 +10,13 @@ import {
   IsArray,
   ValidationOptions,
   Length,
+  IsDefined,
 } from 'class-validator';
 import { Roles } from '../../admins/enums/roles.enum';
 import { applyDecorators } from '@nestjs/common';
 import { i18nValidationMessage } from 'nestjs-i18n';
 import { TranslationKeys } from '../../i18n/translation-keys';
+import { Match, Trim } from '../decorators';
 
 export function IsValidEmail(validationOptions?: ValidationOptions) {
   return applyDecorators(
@@ -33,6 +35,7 @@ export function IsValidEmail(validationOptions?: ValidationOptions) {
       message: i18nValidationMessage(TranslationKeys.email_not_string),
       ...validationOptions,
     }),
+    Trim(),
     IsNotEmpty({
       message: i18nValidationMessage(TranslationKeys.email_required),
       ...validationOptions,
@@ -56,6 +59,7 @@ export function IsValidUsername(validationOptions?: ValidationOptions) {
       message: i18nValidationMessage(TranslationKeys.username_not_string),
       ...validationOptions,
     }),
+    Trim(),
     IsNotEmpty({
       message: i18nValidationMessage(TranslationKeys.username_required),
       ...validationOptions,
@@ -72,14 +76,32 @@ export function IsValidPassword(validationOptions?: ValidationOptions) {
         ...validationOptions,
       },
     ),
-    IsNotEmpty({
-      message: i18nValidationMessage(TranslationKeys.password_required),
-      ...validationOptions,
-    }),
     IsString({
       message: i18nValidationMessage(TranslationKeys.password_not_string),
       ...validationOptions,
     }),
+    Trim(),
+    IsNotEmpty({
+      message: i18nValidationMessage(TranslationKeys.password_required),
+      ...validationOptions,
+    }),
+  );
+}
+
+export function IsValidConfirmPassword(
+  keyName: string = 'password',
+  validationOptions?: ValidationOptions,
+) {
+  return applyDecorators(
+    IsDefined({
+      message: i18nValidationMessage(TranslationKeys.confirm_password_required),
+      ...validationOptions,
+    }),
+    Match(keyName, {
+      message: i18nValidationMessage(TranslationKeys.passwords_not_match),
+      ...validationOptions,
+    }),
+    Trim(),
   );
 }
 
@@ -89,6 +111,7 @@ export function IsValidFullName(validationOptions?: ValidationOptions) {
       message: i18nValidationMessage(TranslationKeys.fullname_length),
       ...validationOptions,
     }),
+    Trim(),
     IsString({
       message: i18nValidationMessage(TranslationKeys.fullname_not_string),
       ...validationOptions,
@@ -107,6 +130,7 @@ export function IsValidCode6(validationOptions?: ValidationOptions) {
       message: i18nValidationMessage(TranslationKeys.code6_not_numeric),
       ...validationOptions,
     }),
+    Trim(),
   );
 }
 

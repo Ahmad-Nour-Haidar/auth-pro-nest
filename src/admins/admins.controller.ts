@@ -25,7 +25,6 @@ import { CustomI18nService } from '../common/services/custom-i18n.service';
 
 @Controller('admins')
 @UseGuards(JwtAuthAdminGuard, RolesGuard)
-// @UseGuards()
 export class AdminsController {
   constructor(
     private readonly adminsService: AdminsService,

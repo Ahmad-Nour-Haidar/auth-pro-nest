@@ -26,13 +26,18 @@ import { JwtAuthUserGuard } from './guards/jwt-auth-user.guard';
 import { GoogleSignInDto } from './dto/google-sign-in.dto';
 import { CustomI18nService } from '../common/services/custom-i18n.service';
 import { TranslationKeys } from '../i18n/translation-keys';
+import { UpdateUserDto } from '../users/dto/update-user.dto';
+import { UsersService } from '../users/users.service';
+import { LodashService } from '../common/services/lodash.service';
 
 @Controller('users-auth')
 export class UsersAuthController {
   constructor(
     private readonly usersAuthService: UsersAuthService,
+    private readonly usersService: UsersService,
     private readonly responseService: ResponseService,
     private readonly i18n: CustomI18nService,
+    private readonly lodashService: LodashService,
   ) {}
 
   @Post('register')
@@ -53,6 +58,28 @@ export class UsersAuthController {
     return this.responseService.success(
       this.i18n.tr(TranslationKeys.login_success),
       result,
+    );
+  }
+
+  @Post('login-with-otp')
+  @HttpCode(HttpStatus.OK)
+  async loginWithOtp(@Body() loginWithOtpDto: LoginWithOtpDto) {
+    const result = await this.usersAuthService.loginWithOtp(loginWithOtpDto);
+    return this.responseService.success(
+      this.i18n.tr(TranslationKeys.otp_login_success),
+      result,
+    );
+  }
+
+  @Post('google-sign-in')
+  @HttpCode(HttpStatus.OK)
+  async googleSignIn(@Body() googleSignInDto: GoogleSignInDto) {
+    const result = await this.usersAuthService.googleSignIn(googleSignInDto);
+    return this.responseService.success(
+      this.i18n.tr(TranslationKeys.google_sign_in_successful),
+      {
+        result,
+      },
     );
   }
 
@@ -96,7 +123,7 @@ export class UsersAuthController {
     );
   }
 
-  @Get('enable-2fa')
+  @Patch('enable-2fa')
   @UseGuards(JwtAuthUserGuard)
   async enable2fa(@CurrentUser() user: User) {
     const result = await this.usersAuthService.enable2fa(user);
@@ -106,8 +133,7 @@ export class UsersAuthController {
     );
   }
 
-  @Post('verify-2fa')
-  @HttpCode(HttpStatus.OK)
+  @Patch('verify-2fa')
   @UseGuards(JwtAuthUserGuard)
   async verify2fa(@CurrentUser() user: User, @Body() otpCodeDto: OtpCodeDto) {
     const result = await this.usersAuthService.verify2fa(user, otpCodeDto);
@@ -120,7 +146,6 @@ export class UsersAuthController {
   }
 
   @Patch('disable-2fa')
-  @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthUserGuard)
   async disable2fa(@CurrentUser() user: User) {
     const result = await this.usersAuthService.disable2fa(user);
@@ -132,30 +157,45 @@ export class UsersAuthController {
     );
   }
 
-  @Post('login-with-otp')
-  @HttpCode(HttpStatus.OK)
-  async loginWithOtp(@Body() loginWithOtpDto: LoginWithOtpDto) {
-    const result = await this.usersAuthService.loginWithOtp(loginWithOtpDto);
+  @Get('me')
+  @UseGuards(JwtAuthUserGuard)
+  async me(@CurrentUser() user: User) {
     return this.responseService.success(
-      this.i18n.tr(TranslationKeys.otp_login_success),
-      result,
+      this.i18n.tr(TranslationKeys.user_retrieved),
+      {
+        user: this.lodashService.omitKeys(user, [
+          'password',
+          'password_changed_at',
+          'verify_code',
+          'roles',
+        ]),
+      },
     );
   }
 
-  @Post('google-sign-in')
-  @HttpCode(HttpStatus.OK)
-  async googleSignIn(@Body() googleSignInDto: GoogleSignInDto) {
-    const result = await this.usersAuthService.googleSignIn(googleSignInDto);
+  @Patch('me')
+  @UseGuards(JwtAuthUserGuard)
+  async updateMe(
+    @CurrentUser() user: User,
+    @Body() updateUserDto: UpdateUserDto,
+  ) {
+    const updatedUser = await this.usersService.update(user.id, updateUserDto);
     return this.responseService.success(
-      this.i18n.tr(TranslationKeys.google_sign_in_successful),
+      this.i18n.tr(TranslationKeys.account_updated),
       {
-        result,
+        user: this.lodashService.omitKeys(updatedUser, [
+          'password',
+          'password_changed_at',
+          'verify_code',
+          'roles',
+        ]),
       },
     );
   }
 
   @Post('logout')
   @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthUserGuard)
   async logout(@CurrentUser() user: User) {
     await this.usersAuthService.logout(user);
     return this.responseService.success(

@@ -11,5 +11,6 @@ import { AdminsModule } from '../admins/admins.module';
   imports: [TypeOrmModule.forFeature([Admin]), AdminsModule],
   controllers: [AdminsAuthController],
   providers: [AdminsAuthService, AdminLocalStrategy, JwtAdminStrategy],
+  // exports: [JwtAdminStrategy],
 })
 export class AdminsAuthModule {}
