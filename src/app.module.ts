@@ -16,6 +16,7 @@ import * as path from 'path';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { DeviceTokenModule } from './device-token/device-token.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Global()
 @Module({
@@ -83,6 +84,7 @@ import { DeviceTokenModule } from './device-token/device-token.module';
     UsersAuthModule,
     CommonModule,
     DeviceTokenModule,
+    NotificationsModule,
   ],
   providers: [AppService],
   controllers: [AppController],

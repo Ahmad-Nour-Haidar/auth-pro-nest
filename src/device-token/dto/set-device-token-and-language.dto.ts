@@ -12,7 +12,7 @@ import { TranslationKeys } from '../../i18n/translation-keys';
 import { enumToValuesString } from '../../utilities/enum-to-values-string.util';
 import { Trim } from '../../common/decorators';
 
-@AnyOf(['firebase_device_token', 'language'], {
+@AnyOf(['firebase_device_token', 'lang'], {
   message: i18nValidationMessage(
     TranslationKeys.language_or_device_token_required,
   ),
