@@ -17,6 +17,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { DeviceTokenModule } from './device-token/device-token.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { JwtStrategy } from './common/strategies/jwt.strategy';
 
 @Global()
 @Module({
@@ -86,7 +87,7 @@ import { NotificationsModule } from './notifications/notifications.module';
     DeviceTokenModule,
     NotificationsModule,
   ],
-  providers: [AppService],
+  providers: [AppService, JwtStrategy],
   controllers: [AppController],
   exports: [JwtModule, UsersAuthModule, AdminsAuthModule],
 })

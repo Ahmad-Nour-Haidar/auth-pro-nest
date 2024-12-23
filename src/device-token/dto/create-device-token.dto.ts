@@ -23,7 +23,7 @@ export class CreateDeviceTokenDto {
 
   @IsEnum(EntityTypeEnum)
   @IsNotEmpty()
-  readonly user_type: EntityTypeEnum;
+  readonly entity_type: EntityTypeEnum;
 
   @IsUUID('4')
   @IsNotEmpty()

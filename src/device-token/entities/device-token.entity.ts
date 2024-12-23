@@ -21,7 +21,7 @@ export class DeviceToken {
   entity_id: string;
 
   @Column({ type: 'enum', enum: EntityTypeEnum })
-  user_type: EntityTypeEnum;
+  entity_type: EntityTypeEnum;
 
   @Column({ type: 'varchar', length: 255, unique: true, nullable: true })
   firebase_device_token?: string;

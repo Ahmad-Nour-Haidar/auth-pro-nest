@@ -36,7 +36,7 @@ export class DeviceTokenController {
   ) {
     await this.deviceTokenService.set({
       entity_id: user.id,
-      user_type: EntityTypeEnum.user,
+      entity_type: EntityTypeEnum.user,
       ...setDeviceTokenAndLanguageDto,
     });
     return this.responseService.success(this.i18n.tr(TranslationKeys.success));
@@ -60,7 +60,7 @@ export class DeviceTokenController {
   ) {
     await this.deviceTokenService.set({
       entity_id: admin.id,
-      user_type: EntityTypeEnum.admin,
+      entity_type: EntityTypeEnum.admin,
       ...setDeviceTokenAndLanguageDto,
     });
     return this.responseService.success(this.i18n.tr(TranslationKeys.success));

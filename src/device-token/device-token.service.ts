@@ -19,7 +19,7 @@ export class DeviceTokenService {
   ) {}
 
   async set(createDeviceTokenDto: CreateDeviceTokenDto): Promise<DeviceToken> {
-    const { entity_id, firebase_device_token, user_type, lang } =
+    const { entity_id, firebase_device_token, entity_type, lang } =
       createDeviceTokenDto;
 
     try {
@@ -30,7 +30,7 @@ export class DeviceTokenService {
       if (existingToken) {
         // Update the existing record
         existingToken.firebase_device_token = firebase_device_token;
-        existingToken.user_type = user_type;
+        existingToken.entity_type = entity_type;
         existingToken.lang = lang;
         return await this.deviceTokenRepository.save(existingToken);
       } else {

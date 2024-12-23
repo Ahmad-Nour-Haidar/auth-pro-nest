@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { FirebaseAdminService } from './services/firebase-admin.service';
 import { SendNotificationByEntityIdDto } from './dto/send-notification-by-entity-id.dto';
 import { DeviceTokenService } from '../device-token/device-token.service';
@@ -9,13 +9,57 @@ import {
   Message,
   MulticastMessage,
 } from 'firebase-admin/lib/messaging/messaging-api';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { CustomI18nService } from '../common/services/custom-i18n.service';
+import { Notification } from './entities/notification.entity';
+import { CreateNotificationDto } from './dto/create-notification.dto';
 
 @Injectable()
 export class NotificationsService {
   constructor(
+    @InjectRepository(Notification)
+    private readonly notificationsRepository: Repository<Notification>,
+    private readonly i18n: CustomI18nService,
     private readonly firebaseAdminService: FirebaseAdminService,
     private readonly deviceTokenService: DeviceTokenService,
   ) {}
+
+  async create(dto: CreateNotificationDto): Promise<Notification> {
+    return this.notificationsRepository.save(dto);
+  }
+
+  async findAll(entity_id: string): Promise<Notification[]> {
+    return this.notificationsRepository.findBy({ entity_id });
+  }
+
+  async findOne(id: string): Promise<Notification> {
+    return this.getNotificationById(id);
+  }
+
+  async findOneByEntityId(entity_id: string): Promise<Notification> {
+    return this.notificationsRepository.findOneBy({ entity_id });
+  }
+
+  async markAsRead(id: string): Promise<Notification> {
+    await this.notificationsRepository.update({ id }, { read_at: new Date() });
+    return this.getNotificationById(id);
+  }
+
+  async markAllAsRead(entity_id: string): Promise<void> {
+    await this.notificationsRepository.update(
+      { entity_id },
+      { read_at: new Date() },
+    );
+  }
+
+  private async getNotificationById(id: string): Promise<Notification> {
+    const notification = await this.notificationsRepository.findOneBy({ id });
+    if (!notification) {
+      throw new NotFoundException(`Notification with ID ${id} not found.`);
+    }
+    return notification;
+  }
 
   async sendNotificationByEntityId(
     sendNotificationByEntityIdDto: SendNotificationByEntityIdDto,
