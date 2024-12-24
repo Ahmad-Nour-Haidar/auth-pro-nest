@@ -5,7 +5,7 @@ import {
   IsString,
   IsUUID,
 } from 'class-validator';
-import { EntityTypeEnum } from '../../device-token/enums/entity-type.enum';
+import { EntityTypeEnum } from '../../common/enums/entity-type.enum';
 
 export class CreateNotificationDto {
   @IsUUID('4')

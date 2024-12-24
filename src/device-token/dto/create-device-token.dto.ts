@@ -7,7 +7,7 @@ import {
   Length,
 } from 'class-validator';
 import { Languages } from '../enums/languages.enum';
-import { EntityTypeEnum } from '../enums/entity-type.enum';
+import { EntityTypeEnum } from '../../common/enums/entity-type.enum';
 
 export class CreateDeviceTokenDto {
   @IsString()

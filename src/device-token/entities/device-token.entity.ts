@@ -7,7 +7,7 @@ import {
   UpdateDateColumn,
   PrimaryColumn,
 } from 'typeorm';
-import { EntityTypeEnum } from '../enums/entity-type.enum';
+import { EntityTypeEnum } from '../../common/enums/entity-type.enum';
 import { Languages } from '../enums/languages.enum';
 
 @Entity('device_tokens')

@@ -92,6 +92,11 @@
   "firebase_device_token_length": "رمز جهاز Firebase يجب أن يكون بين 1 و 255 حرفًا.",
   "lang_not_empty": "اللغة مطلوبة.",
   "lang_enum": "يجب أن تكون اللغة واحدة من القيم المسموح بها: {allowedValues}.",
-  "old_password_required_ar": "كلمة المرور القديمة مطلوبة",
-  "old_password_string_ar": "كلمة المرور القديمة يجب أن تكون نصًا"
+  "old_password_required": "كلمة المرور القديمة مطلوبة",
+  "old_password_string": "كلمة المرور القديمة يجب أن تكون نصًا",
+  "notification_not_found": "الإشعار ذو المعرف {id} غير موجود.",
+  "notifications_retrieved_successfully": "تم استرجاع الإشعارات بنجاح.",
+  "notification_retrieved_successfully": "تم استرجاع الإشعار بنجاح.",
+  "notification_marked_successfully": "تم وضع علامة على الإشعار بنجاح.",
+  "notifications_marked_successfully": "تم وضع علامة على الإشعارات بنجاح."
 }

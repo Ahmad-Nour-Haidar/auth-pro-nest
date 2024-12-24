@@ -93,5 +93,10 @@
   "lang_not_empty": "Language is required.",
   "lang_enum": "The language must be one of the allowed values: {allowedValues}.",
   "old_password_required": "Old Password is required",
-  "old_password_string": "Old Password must be a string"
+  "old_password_string": "Old Password must be a string",
+  "notification_not_found": "Notification with ID {id} not found.",
+  "notifications_retrieved_successfully": "Notifications retrieved successfully.",
+  "notification_retrieved_successfully": "Notification retrieved successfully.",
+  "notification_marked_successfully": "Notification marked successfully.",
+  "notifications_marked_successfully": "Notifications marked successfully."
 }

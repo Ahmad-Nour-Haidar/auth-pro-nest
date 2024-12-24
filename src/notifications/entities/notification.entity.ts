@@ -6,7 +6,7 @@ import {
   UpdateDateColumn,
   Index,
 } from 'typeorm';
-import { EntityTypeEnum } from '../../device-token/enums/entity-type.enum';
+import { EntityTypeEnum } from '../../common/enums/entity-type.enum';
 
 @Entity('notifications')
 export class Notification {

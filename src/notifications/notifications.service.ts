@@ -14,6 +14,7 @@ import { Repository } from 'typeorm';
 import { CustomI18nService } from '../common/services/custom-i18n.service';
 import { Notification } from './entities/notification.entity';
 import { CreateNotificationDto } from './dto/create-notification.dto';
+import { TranslationKeys } from '../i18n/translation-keys';
 
 @Injectable()
 export class NotificationsService {
@@ -56,16 +57,18 @@ export class NotificationsService {
   private async getNotificationById(id: string): Promise<Notification> {
     const notification = await this.notificationsRepository.findOneBy({ id });
     if (!notification) {
-      throw new NotFoundException(`Notification with ID ${id} not found.`);
+      throw new NotFoundException(
+        this.i18n.tr(TranslationKeys.notification_not_found, { args: { id } }),
+      );
     }
     return notification;
   }
 
   async sendNotificationByEntityId(
-    sendNotificationByEntityIdDto: SendNotificationByEntityIdDto,
+    dto: SendNotificationByEntityIdDto,
   ): Promise<void> {
     const deviceToken = await this.deviceTokenService.getFirebaseDeviceToken(
-      sendNotificationByEntityIdDto.entity_id,
+      dto.entity_id,
     );
 
     if (!deviceToken || !deviceToken.firebase_device_token.length) {
@@ -73,16 +76,15 @@ export class NotificationsService {
     }
 
     await this.sendToSingleDevice({
-      ...sendNotificationByEntityIdDto,
+      ...dto,
       firebase_device_token: deviceToken.firebase_device_token,
     });
   }
 
   private async sendToSingleDevice(
-    sendNotificationToSingleDeviceDto: SendNotificationToSingleDeviceDto,
+    dto: SendNotificationToSingleDeviceDto,
   ): Promise<void> {
-    const { firebase_device_token, title, data, body } =
-      sendNotificationToSingleDeviceDto;
+    const { firebase_device_token, title, data, body } = dto;
 
     try {
       const messaging = this.firebaseAdminService.getMessaging();
@@ -99,10 +101,10 @@ export class NotificationsService {
   }
 
   async sendNotificationByEntitiesIds(
-    sendNotificationByEntitiesIdsDto: SendNotificationByEntitiesIdsDto,
+    dto: SendNotificationByEntitiesIdsDto,
   ): Promise<void> {
     const deviceTokens = await this.deviceTokenService.getFirebaseDeviceTokens(
-      sendNotificationByEntitiesIdsDto.entity_ids,
+      dto.entity_ids,
     );
 
     const validTokens = deviceTokens
@@ -114,16 +116,15 @@ export class NotificationsService {
     }
 
     await this.sendToMultipleDevices({
-      ...sendNotificationByEntitiesIdsDto,
+      ...dto,
       firebase_device_tokens: validTokens,
     });
   }
 
   private async sendToMultipleDevices(
-    sendNotificationToMultiDevicesDto: SendNotificationToMultiDevicesDto,
+    dto: SendNotificationToMultiDevicesDto,
   ): Promise<void> {
-    const { firebase_device_tokens, title, body, data } =
-      sendNotificationToMultiDevicesDto;
+    const { firebase_device_tokens, title, body, data } = dto;
 
     const CHUNK_SIZE = 500;
     const messages: MulticastMessage[] = [];

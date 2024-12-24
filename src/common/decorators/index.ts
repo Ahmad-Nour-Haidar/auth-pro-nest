@@ -1,4 +1,5 @@
 export * from './current-admin.decorator';
+export * from './current-entity-type.decorator';
 export * from './current-user.decorator';
 export * from './is-authenticated.decorator';
 export * from './match.decorator';

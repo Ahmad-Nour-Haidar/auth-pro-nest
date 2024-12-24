@@ -99,4 +99,9 @@ export class TranslationKeys {
   static lang_enum = 'translations.lang_enum';
   static old_password_required = 'translations.old_password_required';
   static old_password_string = 'translations.old_password_string';
+  static notification_not_found = 'translations.notification_not_found';
+  static notifications_retrieved_successfully = 'translations.notifications_retrieved_successfully';
+  static notification_retrieved_successfully = 'translations.notification_retrieved_successfully';
+  static notification_marked_successfully = 'translations.notification_marked_successfully';
+  static notifications_marked_successfully = 'translations.notifications_marked_successfully';
 }

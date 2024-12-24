@@ -12,7 +12,7 @@ import { SetDeviceTokenAndLanguageDto } from './dto/set-device-token-and-languag
 import { JwtAuthUserGuard } from '../users-auth/guards/jwt-auth-user.guard';
 import { CurrentAdmin, CurrentUser } from '../common/decorators';
 import { User } from '../users/entities/user.entity';
-import { EntityTypeEnum } from './enums/entity-type.enum';
+import { EntityTypeEnum } from '../common/enums/entity-type.enum';
 import { Admin } from '../admins/entities/admin.entity';
 import { JwtAuthAdminGuard } from '../admins-auth/guards/jwt-auth-admin.guard';
 import { ResponseService } from '../common/services/response.service';

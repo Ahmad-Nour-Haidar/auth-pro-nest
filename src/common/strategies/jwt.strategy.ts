@@ -8,7 +8,7 @@ import { UsersService } from '../../users/users.service';
 import { JwtPayload } from '../types/jwt-payload';
 import { isUser } from '../../admins/enums/roles.enum';
 import { JwtValidationService } from '../services/jwt-validation.service';
-import { EntityTypeEnum } from '../../device-token/enums/entity-type.enum';
+import { EntityTypeEnum } from '../enums/entity-type.enum';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
