@@ -10,8 +10,8 @@ import { getExtensionByMimetype } from '../utils/get-extension-by-mimetype.util'
 import { DefaultSizeLimits } from '../constants/file.constants';
 
 export interface CustomMaxFileSizeValidatorOptions {
-  sizeLimitsByType: Partial<Record<SupportedFileType, FileSizeUnit>>; // Allow one or more file types
-  allowedTypes: NonEmptyArray<SupportedFileType>; // Allow one or more file types
+  sizeLimitsByType: Partial<Record<SupportedFileType, FileSizeUnit>>;
+  allowedTypes: SupportedFileType[];
   message?: (fileType: SupportedFileType, maxSize: FileSizeUnit) => string; // Custom error message
 }
 

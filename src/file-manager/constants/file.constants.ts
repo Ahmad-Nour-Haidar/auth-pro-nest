@@ -23,6 +23,7 @@ export const AllowedTypes = {
   images: ['png', 'jpg', 'jpeg'],
   videos: ['mp4'],
   audios: ['ogg'],
+  documents: ['pdf'],
 } as const satisfies Record<string, NonEmptyArray<SupportedFileType>>;
 
 // export const SizeLimits = {

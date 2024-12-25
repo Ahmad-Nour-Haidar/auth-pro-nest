@@ -1,10 +1,10 @@
 import { BadRequestException, FileValidator } from '@nestjs/common';
-import { MulterFile, NonEmptyArray, SupportedFileType } from '../types/file.types';
+import { MulterFile, SupportedFileType } from '../types/file.types';
 import { iterateAllFiles } from '../utils/filter-type-file.utils';
 import { lookup, extension } from 'mime-types';
 
 export interface CustomFileTypeValidatorOptions {
-  allowedTypes: NonEmptyArray<SupportedFileType>; // List of allowed file extensions
+  allowedTypes: SupportedFileType[]; // List of allowed file extensions
 }
 
 export class CustomFileTypeValidator extends FileValidator<CustomFileTypeValidatorOptions> {

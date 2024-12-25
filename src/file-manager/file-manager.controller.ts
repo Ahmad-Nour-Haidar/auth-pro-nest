@@ -15,6 +15,7 @@ import { AllowedTypes } from './constants/file.constants';
 import * as bytes from 'bytes';
 import { iterateAllFiles } from './utils/filter-type-file.utils';
 import { createParseFilePipe } from './validator/files-validation-factory';
+import { invokeMap } from 'lodash';
 
 @Controller('file-manager')
 export class FileManagerController {
@@ -23,10 +24,9 @@ export class FileManagerController {
   async single(
     @UploadedFile(
       createParseFilePipe({
-        requiredFields: ['image'],
-        allowedTypes: AllowedTypes.images,
+        fields: { image: AllowedTypes.images },
         sizeLimitsByType: {
-          // png: '300KB',
+          png: '30000KB',
           // jpg: '300KB',
           // jpeg: '300KB',
         },
@@ -57,18 +57,29 @@ export class FileManagerController {
   )
   async multiple(
     @UploadedFiles(
-      new ParseFilePipe({
-        fileIsRequired: false,
-        validators: [],
+      createParseFilePipe({
+        fields: {
+          images: AllowedTypes.images,
+          document: AllowedTypes.documents,
+        },
+        sizeLimitsByType: {
+          png: '30000KB',
+          // pdf: '300KB',
+          // jpg: '300KB',
+          // jpeg: '300KB',
+        },
       }),
     )
-    files: MulterFile[],
+    files: {
+      images: MulterFile[];
+      document: MulterFile[];
+    },
   ) {
-    console.log('-------- in controller -------------');
-    console.log(typeof files);
-    return iterateAllFiles(files, (file) => {
-      console.log(file.originalname);
-      return true;
+    files.images.map((file) => {
+      console.log(file.originalname, ' = ', file.fieldname);
+    });
+    files.document.map((file) => {
+      console.log(file.originalname, ' = ', file.fieldname);
     });
   }
 }

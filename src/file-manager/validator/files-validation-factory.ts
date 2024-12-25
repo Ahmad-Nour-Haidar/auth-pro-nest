@@ -1,8 +1,4 @@
-import {
-  FileSizeUnit,
-  NonEmptyArray,
-  SupportedFileType,
-} from '../types/file.types';
+import { FileSizeUnit, SupportedFileType } from '../types/file.types';
 import {
   HttpStatus,
   ParseFilePipe,
@@ -11,29 +7,33 @@ import {
 import { FileValidator } from '@nestjs/common/pipes/file/file-validator.interface';
 import { FileNotEmptyValidator } from './file-not-empty.validator';
 import { CustomMaxFileSizeValidator } from './custom-max-file-size.validator';
-import { CustomFileTypeValidator } from './custom-file-type.validator';
 import { FileSignatureValidator } from './file-signature.validator';
 import { RequiredFileFieldsValidator } from './required-file-fields.validator';
+import { CheckIsFileTypeAllowedForFieldValidator } from './check-is-file-type-allowed-for-field.validator';
 
 export interface CreateParseFilePipeOptions<
   TAllowedTypes extends SupportedFileType = SupportedFileType,
 > {
-  allowedTypes: NonEmptyArray<TAllowedTypes>; // Required
-  requiredFields?: string[]; // Optional
+  // allowedTypes: NonEmptyArray<TAllowedTypes>; // Required
+  fields: Record<string, TAllowedTypes[]>; // Optional
   sizeLimitsByType?: Partial<Record<TAllowedTypes, FileSizeUnit>>; // Automatically scoped to `allowedTypes`
 }
 
 export const createParseFilePipe = <
   TAllowedTypes extends SupportedFileType = SupportedFileType,
 >({
-  allowedTypes,
-  requiredFields = [], // Default to empty array
+  fields = {}, // Default to empty array
   sizeLimitsByType = {}, // Default to empty object
+  // allowedTypes,
 }: CreateParseFilePipeOptions<TAllowedTypes>): ParseFilePipe => {
-  let validators: FileValidator[] = [];
+  const requiredFields = Object.keys(fields);
+
+  const allowedTypes = Array.from(new Set(Object.values(fields).flat()));
 
   // Add file validation logic
-  if (requiredFields.length) {
+  let validators: FileValidator[] = [];
+
+  if (Object.keys(fields).length) {
     validators = [
       new RequiredFileFieldsValidator({
         requiredFields,
@@ -46,8 +46,8 @@ export const createParseFilePipe = <
         allowedTypes,
       }),
 
-      new CustomFileTypeValidator({
-        allowedTypes,
+      new CheckIsFileTypeAllowedForFieldValidator({
+        fields,
       }),
 
       new FileSignatureValidator(),
@@ -55,10 +55,11 @@ export const createParseFilePipe = <
   }
 
   return new ParseFilePipe({
+    fileIsRequired: false,
+    validators: validators,
     errorHttpStatusCode: HttpStatus.UNSUPPORTED_MEDIA_TYPE,
     exceptionFactory: (error: string) => {
       throw new UnprocessableEntityException(error);
     },
-    validators: validators,
   });
 };
