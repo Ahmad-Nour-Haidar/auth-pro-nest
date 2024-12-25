@@ -12,8 +12,7 @@ import { Repository } from 'typeorm';
 import { BcryptService } from '../common/services/bcrypt.service';
 import { LoginUserDto } from './dto/login-user.dto';
 import { JwtService } from '@nestjs/jwt';
-import { JwtSignPayload } from '../common/types/jwt-payload';
-import { transformToDto } from '../utilities/transform.util';
+import { transformToDto } from '../common/util/transform.util';
 import { VerifyCodeDto } from './dto/verify-code.dto';
 import { MailService } from '../common/services/mail.service';
 import { CheckEmailDto } from './dto/check-email.dto';
@@ -33,6 +32,7 @@ import { GoogleAuthService } from './services/google-auth.service';
 import { RandomService } from '../common/services/random.service';
 import { TranslationKeys } from '../i18n/translation-keys';
 import { CustomI18nService } from '../common/services/custom-i18n.service';
+import { JwtSignPayload } from '../common/types/jwt-payload.types';
 
 @Injectable()
 export class UsersAuthService {

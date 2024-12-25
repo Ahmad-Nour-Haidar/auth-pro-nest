@@ -9,7 +9,7 @@ import { Languages } from '../enums/languages.enum';
 import { AnyOf } from '../../common/validations/any-of';
 import { i18nValidationMessage } from 'nestjs-i18n';
 import { TranslationKeys } from '../../i18n/translation-keys';
-import { enumToValuesString } from '../../utilities/enum-to-values-string.util';
+import { enumToValuesString } from '../../common/util/enum-to-values-string.util';
 import { Trim } from '../../common/decorators';
 
 @AnyOf(['firebase_device_token', 'lang'], {

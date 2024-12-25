@@ -4,8 +4,8 @@ import { ConfigService } from '@nestjs/config';
 import { Strategy, ExtractJwt } from 'passport-jwt';
 import { AdminsService } from '../../admins/admins.service';
 import { JwtValidationService } from '../../common/services/jwt-validation.service';
-import { JwtPayload } from '../../common/types/jwt-payload';
 import { Admin } from '../../admins/entities/admin.entity';
+import { JwtPayload } from '../../common/types/jwt-payload.types';
 
 @Injectable()
 export class JwtAdminStrategy extends PassportStrategy(Strategy, 'jwt-admin') {

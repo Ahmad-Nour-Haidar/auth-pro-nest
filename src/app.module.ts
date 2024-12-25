@@ -18,6 +18,7 @@ import { AppService } from './app.service';
 import { DeviceTokenModule } from './device-token/device-token.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { JwtStrategy } from './common/strategies/jwt.strategy';
+import { FileManagerModule } from './file-manager/file-manager.module';
 
 @Global()
 @Module({
@@ -86,6 +87,7 @@ import { JwtStrategy } from './common/strategies/jwt.strategy';
     CommonModule,
     DeviceTokenModule,
     NotificationsModule,
+    FileManagerModule,
   ],
   providers: [AppService, JwtStrategy],
   controllers: [AppController],

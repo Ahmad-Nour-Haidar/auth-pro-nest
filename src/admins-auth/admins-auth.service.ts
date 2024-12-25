@@ -13,8 +13,7 @@ import { Admin } from '../admins/entities/admin.entity';
 import { BcryptService } from '../common/services/bcrypt.service';
 import { LoginAdminDto } from './dto/login-admin.dto';
 import { JwtService } from '@nestjs/jwt';
-import { JwtSignPayload } from '../common/types/jwt-payload';
-import { transformToDto } from '../utilities/transform.util';
+import { transformToDto } from '../common/util/transform.util';
 import { VerifyCodeDto } from './dto/verify-code.dto';
 import { MailService } from '../common/services/mail.service';
 import { CheckEmailDto } from './dto/check-email.dto';
@@ -27,6 +26,7 @@ import { AdminAuthResponseDto } from './dto/admin-auth-response.dto';
 import { RandomService } from '../common/services/random.service';
 import { CustomI18nService } from '../common/services/custom-i18n.service';
 import { TranslationKeys } from '../i18n/translation-keys';
+import { JwtSignPayload } from '../common/types/jwt-payload.types';
 
 @Injectable()
 export class AdminsAuthService {

@@ -5,7 +5,7 @@ import { ResponseService } from '../common/services/response.service';
 import { Roles } from '../admins/enums/roles.enum';
 import { SuperAdminAccessPassword } from './decorators/access-password.decorator';
 import { AccessPasswordGuard } from './guards/access-password.guard';
-import { transformToDto } from '../utilities/transform.util';
+import { transformToDto } from '../common/util/transform.util';
 import { AdminResponseDto } from '../admins/dto/admin-response.dto';
 import { CustomI18nService } from '../common/services/custom-i18n.service';
 import { TranslationKeys } from '../i18n/translation-keys';

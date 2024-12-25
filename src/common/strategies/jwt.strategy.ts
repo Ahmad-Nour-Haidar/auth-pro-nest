@@ -5,10 +5,10 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
 import { AdminsService } from '../../admins/admins.service';
 import { UsersService } from '../../users/users.service';
-import { JwtPayload } from '../types/jwt-payload';
 import { isUser } from '../../admins/enums/roles.enum';
 import { JwtValidationService } from '../services/jwt-validation.service';
 import { EntityTypeEnum } from '../enums/entity-type.enum';
+import { JwtPayload } from '../types/jwt-payload.types';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {

@@ -10,9 +10,9 @@ import {
 import { AdminsService } from './admins.service';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { UpdateAdminDto } from './dto/update-admin.dto';
-import { UUIDV4Param } from '../common/decorators/uuid-param.decorator';
+import { UUIDV4Param } from '../common/decorators';
 import { ResponseService } from '../common/services/response.service';
-import { transformToDto } from '../utilities/transform.util';
+import { transformToDto } from '../common/util/transform.util';
 import { AdminResponseDto } from './dto/admin-response.dto';
 import { CurrentAdmin, SuperAdminOnly } from '../common/decorators';
 import { Admin } from './entities/admin.entity';

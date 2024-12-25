@@ -19,7 +19,7 @@ import { Admin } from '../admins/entities/admin.entity';
 import { OtpCodeDto } from '../common/dto/otp-code.dto';
 import { LoginWithOtpDto } from '../common/dto/login-with-otp.dto';
 import { JwtAuthAdminGuard } from './guards/jwt-auth-admin.guard';
-import { transformToDto } from '../utilities/transform.util';
+import { transformToDto } from '../common/util/transform.util';
 import { AdminAuthResponseDto } from './dto/admin-auth-response.dto';
 import { CustomI18nService } from '../common/services/custom-i18n.service';
 import { TranslationKeys } from '../i18n/translation-keys';

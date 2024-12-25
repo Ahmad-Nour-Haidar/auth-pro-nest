@@ -20,7 +20,7 @@ import { OtpCodeDto } from '../common/dto/otp-code.dto';
 import { LoginWithOtpDto } from '../common/dto/login-with-otp.dto';
 import { User } from '../users/entities/user.entity';
 import { RegisterUserDto } from './dto/register-user.dto';
-import { transformToDto } from '../utilities/transform.util';
+import { transformToDto } from '../common/util/transform.util';
 import { UserAuthResponseDto } from './dto/user-auth-response.dto';
 import { JwtAuthUserGuard } from './guards/jwt-auth-user.guard';
 import { GoogleSignInDto } from './dto/google-sign-in.dto';
