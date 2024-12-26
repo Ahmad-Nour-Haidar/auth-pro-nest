@@ -1,24 +1,29 @@
-export interface FileMetadata {
-  size: string;
-  mimetype: string;
-  originalname: string;
-  uniqueName: string;
-  path: string;
-  url?: string;
-}
+import { FileStorageService } from '../enums/file-storage-service.enum';
+import { Exclude, Expose } from 'class-transformer';
 
-// export class FileMetadata {
-//   constructor(
-//     public size: string,
-//     public mimetype: string,
-//     public originalname: string,
-//     public uniqueName: string,
-//     public path: string,
-//     public url: string,
-//   ) {}
-//
-//   // Example Method
-//   getExtension(): string {
-//     return this.mimetype.split('/')[1];
-//   }
-// }
+export class FileMetadata {
+  @Expose()
+  size: string;
+
+  @Expose()
+  mimetype: string;
+
+  @Expose()
+  originalname: string;
+
+  @Expose()
+  uniqueName: string;
+
+  @Expose()
+  url?: string;
+
+  @Exclude()
+  fileStorageService: FileStorageService;
+
+  @Exclude()
+  path: string;
+
+  // Cloudinary id
+  @Exclude()
+  public_id?: string;
+}

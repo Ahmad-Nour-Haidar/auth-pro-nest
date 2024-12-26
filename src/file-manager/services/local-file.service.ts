@@ -5,6 +5,7 @@ import { randomUUID } from 'crypto';
 import * as bytes from 'bytes';
 import { FileUrlService } from './file-url.service';
 import { FileMetadata } from '../classes/file-metadata';
+import { FileStorageService } from '../enums/file-storage-service.enum';
 
 @Injectable()
 export class LocalFileService {
@@ -41,13 +42,15 @@ export class LocalFileService {
         const uniqueName = this.getUniqueFilename(file.originalname);
         const path = join(uploadDir, uniqueName);
         await writeFile(path, file.buffer);
-        return {
+        const s: FileMetadata = {
+          fileStorageService: FileStorageService.LOCAL,
           size: bytes(file.size),
           mimetype: file.mimetype,
           originalname: file.originalname,
           uniqueName: uniqueName,
           path: path.replace(/\\/g, '/'),
         };
+        return s;
       }),
     );
   }

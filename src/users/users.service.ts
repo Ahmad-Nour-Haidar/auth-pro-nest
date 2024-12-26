@@ -17,7 +17,8 @@ import { RandomService } from '../common/services/random.service';
 import { TranslationKeys } from '../i18n/translation-keys';
 import { CustomI18nService } from '../common/services/custom-i18n.service';
 import { FileManagerService } from '../file-manager/file-manager.service';
-import { generateFileUrl } from '../file-manager/services/file-url.service';
+import { FileStorageService } from '../file-manager/enums/file-storage-service.enum';
+import { FileMetadata } from '../file-manager/classes/file-metadata';
 
 @Injectable()
 export class UsersService {
@@ -74,25 +75,35 @@ export class UsersService {
     try {
       let user = await this.getUserById({ id });
 
+      if (dto.delete_cover_image || dto.delete_profile_image) {
+        const filesToDelete: FileMetadata[] = [];
+        if (dto.delete_cover_image) {
+          filesToDelete.push(user.cover_image);
+          user.cover_image = null;
+        }
+        if (dto.delete_profile_image) {
+          filesToDelete.push(user.profile_image);
+          user.profile_image = null;
+        }
+
+        await this.fileManagerService.delete(...filesToDelete);
+      }
+
       // Filter non-null files
       const filesToSave = [cover_image, profile_image].filter(Boolean);
-
       if (filesToSave.length > 0) {
         const results = await this.fileManagerService.save({
           files: filesToSave,
+          service: FileStorageService.Cloudinary,
         });
 
         // Assign saved files to the user object
         if (cover_image) {
-          const savedCoverImage = results.shift();
-          user.cover_image = savedCoverImage;
-          user.cover_image.url = generateFileUrl(savedCoverImage.path);
+          user.cover_image = results.shift();
         }
 
         if (profile_image) {
-          const savedProfileImage = results.shift();
-          user.profile_image = savedProfileImage;
-          user.profile_image.url = generateFileUrl(savedProfileImage.path);
+          user.profile_image = results.shift();
         }
       }
 

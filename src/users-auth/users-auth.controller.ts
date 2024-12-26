@@ -30,7 +30,6 @@ import { CustomI18nService } from '../common/services/custom-i18n.service';
 import { TranslationKeys } from '../i18n/translation-keys';
 import { UpdateUserDto } from '../users/dto/update-user.dto';
 import { UsersService } from '../users/users.service';
-import { LodashService } from '../common/services/lodash.service';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { createParseFilePipe } from '../file-manager/validator/files-validation-factory';
 import { AllowedTypes } from '../file-manager/constants/file.constants';
@@ -43,7 +42,6 @@ export class UsersAuthController {
     private readonly usersService: UsersService,
     private readonly responseService: ResponseService,
     private readonly i18n: CustomI18nService,
-    private readonly lodashService: LodashService,
   ) {}
 
   @Post('register')
@@ -169,12 +167,7 @@ export class UsersAuthController {
     return this.responseService.success(
       this.i18n.tr(TranslationKeys.user_retrieved),
       {
-        user: this.lodashService.omitKeys(user, [
-          'password',
-          'password_changed_at',
-          'verify_code',
-          'roles',
-        ]),
+        user: transformToDto(UserAuthResponseDto, user),
       },
     );
   }
@@ -215,12 +208,7 @@ export class UsersAuthController {
     return this.responseService.success(
       this.i18n.tr(TranslationKeys.account_updated),
       {
-        user: this.lodashService.omitKeys(updatedUser, [
-          'password',
-          'password_changed_at',
-          'verify_code',
-          'roles',
-        ]),
+        user: transformToDto(UserAuthResponseDto, updatedUser),
       },
     );
   }

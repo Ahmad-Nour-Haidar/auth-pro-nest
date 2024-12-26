@@ -107,10 +107,10 @@ export function IsValidConfirmPassword(
 
 export function IsValidFullName(validationOptions?: ValidationOptions) {
   return applyDecorators(
-    Length(1, 255, {
-      message: i18nValidationMessage(TranslationKeys.fullname_length),
-      ...validationOptions,
-    }),
+    // Length(1, 255, {
+    //   message: i18nValidationMessage(TranslationKeys.fullname_length),
+    //   ...validationOptions,
+    // }),
     Trim(),
     IsString({
       message: i18nValidationMessage(TranslationKeys.fullname_not_string),

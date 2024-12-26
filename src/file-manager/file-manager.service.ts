@@ -3,6 +3,8 @@ import { LocalFileService } from './services/local-file.service';
 import { MulterFile } from './types/file.types';
 import { FileStorageService } from './enums/file-storage-service.enum';
 import { FileMetadata } from './classes/file-metadata';
+import { CloudinaryService } from './services/cloudinary.service';
+import { FolderStorage } from './enums/folder-storage.enum';
 
 export interface SaveFileParams {
   files: MulterFile | MulterFile[]; // Accepts one or multiple MulterFile objects
@@ -12,18 +14,36 @@ export interface SaveFileParams {
 
 @Injectable()
 export class FileManagerService {
-  constructor(private localFileService: LocalFileService) {}
+  constructor(
+    private readonly localFileService: LocalFileService,
+    private readonly cloudinaryService: CloudinaryService,
+  ) {}
 
   async save(params: SaveFileParams): Promise<FileMetadata[]> {
     const { files, service = FileStorageService.LOCAL, path } = params;
 
     if (service === FileStorageService.LOCAL) {
       return await this.localFileService.saveFiles(files, path);
-    } else if (service === FileStorageService.AWS_S3) {
-    } else if (service === FileStorageService.GOOGLE_CLOUD) {
+    } else if (service === FileStorageService.Cloudinary) {
+      return await this.cloudinaryService.uploadFiles(
+        files,
+        FolderStorage.users,
+      );
     } else {
       throw new Error(`Unsupported service: ${service}`);
     }
+  }
+
+  async delete(...params: FileMetadata[]) {
+    await Promise.all(
+      params.map(async (file) => {
+        if (file.fileStorageService === FileStorageService.LOCAL) {
+          await this.localFileService.deleteFile(file.path);
+        } else if (file.fileStorageService === FileStorageService.Cloudinary) {
+          await this.cloudinaryService.deleteFile(file.public_id);
+        }
+      }),
+    );
   }
 }
 

@@ -11,10 +11,7 @@ import {
 import { CreateMethod } from '../enums/create-method.enum';
 import { Roles } from '../../admins/enums/roles.enum';
 import { FileMetadata } from '../../file-manager/classes/file-metadata';
-import {
-  FileUrlService,
-  generateFileUrl,
-} from '../../file-manager/services/file-url.service';
+import { generateFileUrl } from '../../file-manager/services/file-url.service';
 
 @Entity('users')
 export class User {
@@ -91,10 +88,10 @@ export class User {
   @AfterLoad()
   addFileUrls() {
     if (this.profile_image) {
-      this.profile_image.url = generateFileUrl(this.profile_image.path);
+      this.profile_image.url = generateFileUrl(this.profile_image);
     }
     if (this.cover_image) {
-      this.cover_image.url = generateFileUrl(this.cover_image.path);
+      this.cover_image.url = generateFileUrl(this.cover_image);
     }
   }
 }
