@@ -11,24 +11,35 @@ import { FileSignatureValidator } from './file-signature.validator';
 import { RequiredFileFieldsValidator } from './required-file-fields.validator';
 import { CheckIsFileTypeAllowedForFieldValidator } from './check-is-file-type-allowed-for-field.validator';
 
+export interface FieldValidationOptions<
+  TAllowedTypes extends SupportedFileType = SupportedFileType,
+> {
+  required?: boolean; // Default: false
+  allowedTypes: TAllowedTypes[];
+}
+
 export interface CreateParseFilePipeOptions<
   TAllowedTypes extends SupportedFileType = SupportedFileType,
 > {
-  // allowedTypes: NonEmptyArray<TAllowedTypes>; // Required
-  fields: Record<string, TAllowedTypes[]>; // Optional
+  fields: Record<string, FieldValidationOptions<TAllowedTypes>>; // Updated structure
   sizeLimitsByType?: Partial<Record<TAllowedTypes, FileSizeUnit>>; // Automatically scoped to `allowedTypes`
 }
 
 export const createParseFilePipe = <
   TAllowedTypes extends SupportedFileType = SupportedFileType,
 >({
-  fields = {}, // Default to empty array
+  fields = {}, // Default to empty object
   sizeLimitsByType = {}, // Default to empty object
-  // allowedTypes,
 }: CreateParseFilePipeOptions<TAllowedTypes>): ParseFilePipe => {
-  const requiredFields = Object.keys(fields);
+  // Extract required fields
+  const requiredFields = Object.entries(fields)
+    .filter(([, options]) => options.required)
+    .map(([fieldName]) => fieldName);
 
-  const allowedTypes = Array.from(new Set(Object.values(fields).flat()));
+  // Extract all allowed file types
+  const allowedTypes = Array.from(
+    new Set(Object.values(fields).flatMap((options) => options.allowedTypes)),
+  );
 
   // Add file validation logic
   let validators: FileValidator[] = [];
@@ -47,7 +58,12 @@ export const createParseFilePipe = <
       }),
 
       new CheckIsFileTypeAllowedForFieldValidator({
-        fields,
+        fields: Object.fromEntries(
+          Object.entries(fields).map(([key, options]) => [
+            key,
+            options.allowedTypes,
+          ]),
+        ),
       }),
 
       new FileSignatureValidator(),

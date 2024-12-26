@@ -6,7 +6,9 @@ import {
   HttpStatus,
   Patch,
   Post,
+  UploadedFiles,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { ResponseService } from '../common/services/response.service';
 import { LoginUserDto } from './dto/login-user.dto';
@@ -29,6 +31,10 @@ import { TranslationKeys } from '../i18n/translation-keys';
 import { UpdateUserDto } from '../users/dto/update-user.dto';
 import { UsersService } from '../users/users.service';
 import { LodashService } from '../common/services/lodash.service';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
+import { createParseFilePipe } from '../file-manager/validator/files-validation-factory';
+import { AllowedTypes } from '../file-manager/constants/file.constants';
+import { MulterFile } from '../file-manager/types/file.types';
 
 @Controller('users-auth')
 export class UsersAuthController {
@@ -175,11 +181,37 @@ export class UsersAuthController {
 
   @Patch('me')
   @UseGuards(JwtAuthUserGuard)
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      { name: 'cover_image', maxCount: 1 },
+      { name: 'profile_image', maxCount: 1 },
+    ]),
+  )
   async updateMe(
+    @UploadedFiles(
+      createParseFilePipe({
+        fields: {
+          cover_image: {
+            allowedTypes: AllowedTypes.images,
+          },
+          profile_image: {
+            allowedTypes: AllowedTypes.images,
+          },
+        },
+      }),
+    )
+    files: {
+      cover_image?: MulterFile[];
+      profile_image?: MulterFile[];
+    },
     @CurrentUser() user: User,
     @Body() updateUserDto: UpdateUserDto,
   ) {
-    const updatedUser = await this.usersService.update(user.id, updateUserDto);
+    const updatedUser = await this.usersService.update(user.id, {
+      ...updateUserDto,
+      cover_image: files?.cover_image?.[0] || null,
+      profile_image: files?.profile_image?.[0] || null,
+    });
     return this.responseService.success(
       this.i18n.tr(TranslationKeys.account_updated),
       {

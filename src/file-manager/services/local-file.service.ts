@@ -1,10 +1,15 @@
 import { Injectable } from '@nestjs/common';
-import { writeFile, unlink, mkdir } from 'fs/promises';
+import { mkdir, unlink, writeFile } from 'fs/promises';
 import { join } from 'path';
 import { randomUUID } from 'crypto';
+import * as bytes from 'bytes';
+import { FileUrlService } from './file-url.service';
+import { FileMetadata } from '../classes/file-metadata';
 
 @Injectable()
 export class LocalFileService {
+  constructor(private readonly fileUrlService: FileUrlService) {}
+
   private readonly baseUploadPath = './uploads'; // Base upload directory
   private readonly defaultPath = 'defaults'; // Default subdirectory
 
@@ -20,7 +25,7 @@ export class LocalFileService {
   async saveFiles(
     files: Express.Multer.File | Express.Multer.File[],
     path?: string,
-  ): Promise<string[]> {
+  ): Promise<FileMetadata[]> {
     // Ensure files is an array
     const fileArray = Array.isArray(files) ? files : [files];
 
@@ -31,18 +36,20 @@ export class LocalFileService {
     await mkdir(uploadDir, { recursive: true });
 
     // Save each file and return their paths
-    const savedPaths = await Promise.all(
+    return await Promise.all(
       fileArray.map(async (file) => {
         const uniqueName = this.getUniqueFilename(file.originalname);
-        const fullPath = join(uploadDir, uniqueName);
-        await writeFile(fullPath, file.buffer);
-        return fullPath;
+        const path = join(uploadDir, uniqueName);
+        await writeFile(path, file.buffer);
+        return {
+          size: bytes(file.size),
+          mimetype: file.mimetype,
+          originalname: file.originalname,
+          uniqueName: uniqueName,
+          path: path.replace(/\\/g, '/'),
+        };
       }),
     );
-
-    console.log(savedPaths);
-
-    return savedPaths;
   }
 
   /**

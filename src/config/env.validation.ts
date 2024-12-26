@@ -45,6 +45,12 @@ export class EnvironmentVariables {
 
   @IsString()
   GOOGLE_CLIENT_SECRET: string;
+
+  @IsString()
+  CLOUD_BASE_URL: string;
+
+  @IsString()
+  APP_HOST: string;
 }
 
 // Validation function to ensure env values are properly validated

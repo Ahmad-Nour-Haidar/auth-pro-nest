@@ -1,6 +1,5 @@
 import {
   Controller,
-  ParseFilePipe,
   Post,
   UploadedFile,
   UploadedFiles,
@@ -12,19 +11,20 @@ import {
 } from '@nestjs/platform-express';
 import { MulterFile } from './types/file.types';
 import { AllowedTypes } from './constants/file.constants';
-import * as bytes from 'bytes';
-import { iterateAllFiles } from './utils/filter-type-file.utils';
 import { createParseFilePipe } from './validator/files-validation-factory';
-import { invokeMap } from 'lodash';
+import { FileManagerService } from './file-manager.service';
+import { FileStorageService } from './enums/file-storage-service.enum';
 
 @Controller('file-manager')
 export class FileManagerController {
+  constructor(private readonly fileManagerService: FileManagerService) {}
+
   @Post('single')
   @UseInterceptors(FileInterceptor('image'))
   async single(
     @UploadedFile(
       createParseFilePipe({
-        fields: { image: AllowedTypes.images },
+        fields: { image: { allowedTypes: AllowedTypes.images } },
         sizeLimitsByType: {
           png: '30000KB',
           // jpg: '300KB',
@@ -35,11 +35,10 @@ export class FileManagerController {
     file: MulterFile,
   ) {
     if (file) {
-      return {
-        filename: file.filename,
-        originalname: file.originalname,
-        size: bytes(file.size),
-      };
+      return await this.fileManagerService.save({
+        files: file,
+        service: FileStorageService.LOCAL,
+      });
     } else {
       return { msg: 'no file uploaded' };
     }
@@ -59,8 +58,8 @@ export class FileManagerController {
     @UploadedFiles(
       createParseFilePipe({
         fields: {
-          images: AllowedTypes.images,
-          document: AllowedTypes.documents,
+          images: { allowedTypes: AllowedTypes.images },
+          document: { allowedTypes: AllowedTypes.documents },
         },
         sizeLimitsByType: {
           png: '30000KB',

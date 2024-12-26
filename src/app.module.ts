@@ -19,6 +19,9 @@ import { DeviceTokenModule } from './device-token/device-token.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { JwtStrategy } from './common/strategies/jwt.strategy';
 import { FileManagerModule } from './file-manager/file-manager.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
+import * as process from 'node:process';
 
 @Global()
 @Module({
@@ -77,6 +80,11 @@ import { FileManagerModule } from './file-manager/file-manager.module';
       },
     ]),
 
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'uploads'), // Path to your uploads folder
+      serveRoot: '/uploads', // Publicly accessible URL prefix
+    }),
+
     // Application modules
     AppModule,
     AdminsModule,
@@ -91,7 +99,7 @@ import { FileManagerModule } from './file-manager/file-manager.module';
   ],
   providers: [AppService, JwtStrategy],
   controllers: [AppController],
-  exports: [JwtModule, UsersAuthModule, AdminsAuthModule],
+  exports: [JwtModule, UsersAuthModule, AdminsAuthModule, FileManagerModule],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

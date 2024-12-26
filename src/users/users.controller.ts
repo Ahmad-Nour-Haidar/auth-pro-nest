@@ -11,7 +11,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UsersService } from './users.service';
 import { SuperAdminOnly } from '../common/decorators';
 import { transformToDto } from '../common/util/transform.util';
-import { UUIDV4Param } from '../common/decorators/uuid-param.decorator';
+import { UUIDV4Param } from '../common/decorators';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { ResponseService } from '../common/services/response.service';
 import { UserResponseDto } from './dto/user-response.dto';

@@ -16,6 +16,8 @@ import { MailService } from '../common/services/mail.service';
 import { RandomService } from '../common/services/random.service';
 import { TranslationKeys } from '../i18n/translation-keys';
 import { CustomI18nService } from '../common/services/custom-i18n.service';
+import { FileManagerService } from '../file-manager/file-manager.service';
+import { generateFileUrl } from '../file-manager/services/file-url.service';
 
 @Injectable()
 export class UsersService {
@@ -26,6 +28,7 @@ export class UsersService {
     private readonly mailService: MailService,
     private readonly randomService: RandomService,
     private readonly i18n: CustomI18nService,
+    private readonly fileManagerService: FileManagerService,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
@@ -66,21 +69,52 @@ export class UsersService {
   }
 
   async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
+    const { profile_image, cover_image, ...dto } = updateUserDto;
+
     try {
-      await this.usersRepository.update({ id }, updateUserDto);
-      return this.getUserById({ id });
+      let user = await this.getUserById({ id });
+
+      // Filter non-null files
+      const filesToSave = [cover_image, profile_image].filter(Boolean);
+
+      if (filesToSave.length > 0) {
+        const results = await this.fileManagerService.save({
+          files: filesToSave,
+        });
+
+        // Assign saved files to the user object
+        if (cover_image) {
+          const savedCoverImage = results.shift();
+          user.cover_image = savedCoverImage;
+          user.cover_image.url = generateFileUrl(savedCoverImage.path);
+        }
+
+        if (profile_image) {
+          const savedProfileImage = results.shift();
+          user.profile_image = savedProfileImage;
+          user.profile_image.url = generateFileUrl(savedProfileImage.path);
+        }
+      }
+
+      // Save updated user data
+      user = await this.usersRepository.save({ ...user, ...dto });
+
+      return user;
     } catch (error) {
       if (error.code === '23505') {
-        // Unique constraint violation error code for PostgresSQL
+        // Unique constraint violation error code for PostgreSQL
         if (error.detail.includes('email')) {
           throw new ConflictException(
             this.i18n.tr(TranslationKeys.email_in_use),
           );
         }
         if (error.detail.includes('username')) {
-          this.i18n.tr(TranslationKeys.username_in_use);
+          throw new ConflictException(
+            this.i18n.tr(TranslationKeys.username_in_use),
+          );
         }
       }
+
       throw error; // Re-throw the error if it's not a unique constraint violation
     }
   }
