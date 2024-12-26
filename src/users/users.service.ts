@@ -19,6 +19,8 @@ import { CustomI18nService } from '../common/services/custom-i18n.service';
 import { FileManagerService } from '../file-manager/file-manager.service';
 import { FileStorageService } from '../file-manager/enums/file-storage-service.enum';
 import { FileMetadata } from '../file-manager/classes/file-metadata';
+import { MulterFile } from '../file-manager/types/file.types';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class UsersService {
@@ -30,6 +32,7 @@ export class UsersService {
     private readonly randomService: RandomService,
     private readonly i18n: CustomI18nService,
     private readonly fileManagerService: FileManagerService,
+    private readonly configService: ConfigService,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
@@ -70,31 +73,44 @@ export class UsersService {
   }
 
   async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
-    const { profile_image, cover_image, ...dto } = updateUserDto;
+    const {
+      profile_image,
+      cover_image,
+      delete_profile_image,
+      delete_cover_image,
+      ...dto
+    } = updateUserDto;
 
     try {
       let user = await this.getUserById({ id });
 
-      if (dto.delete_cover_image || dto.delete_profile_image) {
-        const filesToDelete: FileMetadata[] = [];
-        if (dto.delete_cover_image) {
-          filesToDelete.push(user.cover_image);
-          user.cover_image = null;
-        }
-        if (dto.delete_profile_image) {
-          filesToDelete.push(user.profile_image);
-          user.profile_image = null;
-        }
-
-        await this.fileManagerService.delete(...filesToDelete);
+      const filesToSave: MulterFile[] = [];
+      const filesToDelete: FileMetadata[] = [];
+      if (cover_image) {
+        filesToSave.push(cover_image);
+      }
+      if ((cover_image || delete_cover_image) && user.cover_image) {
+        filesToDelete.push(user.cover_image);
+        user.cover_image = null;
       }
 
-      // Filter non-null files
-      const filesToSave = [cover_image, profile_image].filter(Boolean);
+      if (profile_image) {
+        filesToSave.push(profile_image);
+      }
+      if ((profile_image || delete_profile_image) && user.profile_image) {
+        filesToDelete.push(user.profile_image);
+        user.profile_image = null;
+      }
+
+      if (filesToDelete.length)
+        await this.fileManagerService.delete(...filesToDelete);
+
       if (filesToSave.length > 0) {
         const results = await this.fileManagerService.save({
           files: filesToSave,
-          service: FileStorageService.Cloudinary,
+          service: this.configService.get<FileStorageService>(
+            'FILE_STORAGE_SERVICES',
+          ),
         });
 
         // Assign saved files to the user object

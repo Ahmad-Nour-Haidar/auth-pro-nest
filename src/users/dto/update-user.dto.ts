@@ -12,6 +12,7 @@ export class UpdateUserDto extends PartialType(
 
   @IsOptional()
   @IsBoolean()
+  @Transform(({ value }) => value.toString() === 'true')
   delete_cover_image?: boolean;
 
   @IsOptional()

@@ -3,16 +3,15 @@ import { mkdir, unlink, writeFile } from 'fs/promises';
 import { join } from 'path';
 import { randomUUID } from 'crypto';
 import * as bytes from 'bytes';
-import { FileUrlService } from './file-url.service';
 import { FileMetadata } from '../classes/file-metadata';
 import { FileStorageService } from '../enums/file-storage-service.enum';
+import { FolderStorage } from '../enums/folder-storage.enum';
+import { generateFileUrl } from './file-url.service';
 
 @Injectable()
 export class LocalFileService {
-  constructor(private readonly fileUrlService: FileUrlService) {}
-
   private readonly baseUploadPath = './uploads'; // Base upload directory
-  private readonly defaultPath = 'defaults'; // Default subdirectory
+  private readonly defaultPath = FolderStorage.users; // Default subdirectory
 
   /**
    * Save one or more files to the specified directory.
@@ -50,6 +49,7 @@ export class LocalFileService {
           uniqueName: uniqueName,
           path: path.replace(/\\/g, '/'),
         };
+        s.url = generateFileUrl(s);
         return s;
       }),
     );
@@ -61,7 +61,9 @@ export class LocalFileService {
    * @param filepath - The full path of the file to delete
    */
   async deleteFile(filepath: string): Promise<void> {
-    await unlink(filepath);
+    try {
+      await unlink(filepath);
+    } catch (error) {}
   }
 
   /**

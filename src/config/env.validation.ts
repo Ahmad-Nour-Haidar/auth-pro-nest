@@ -6,6 +6,7 @@ import {
   validateSync,
 } from 'class-validator';
 import { plainToInstance } from 'class-transformer';
+import { FileStorageService } from '../file-manager/enums/file-storage-service.enum';
 
 export enum NodeEnv {
   development = 'development',
@@ -51,6 +52,18 @@ export class EnvironmentVariables {
 
   @IsString()
   APP_HOST: string;
+
+  @IsString()
+  CLOUDINARY_CLOUD_NAME: string;
+
+  @IsString()
+  CLOUDINARY_API_KEY: string;
+
+  @IsString()
+  CLOUDINARY_API_SECRET: string;
+
+  @IsEnum(FileStorageService)
+  FILE_STORAGE_SERVICES: FileStorageService;
 }
 
 // Validation function to ensure env values are properly validated

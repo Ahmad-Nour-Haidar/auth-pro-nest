@@ -9,7 +9,7 @@ import { FolderStorage } from './enums/folder-storage.enum';
 export interface SaveFileParams {
   files: MulterFile | MulterFile[]; // Accepts one or multiple MulterFile objects
   service?: FileStorageService; // Defaults to LOCAL if not provided
-  path?: string; // Defaults to '/defaults' if not provided
+  folder?: FolderStorage.users; // Defaults to '/users' if not provided
 }
 
 @Injectable()
@@ -20,10 +20,14 @@ export class FileManagerService {
   ) {}
 
   async save(params: SaveFileParams): Promise<FileMetadata[]> {
-    const { files, service = FileStorageService.LOCAL, path } = params;
+    const {
+      files,
+      service = FileStorageService.LOCAL,
+      folder = FolderStorage.users,
+    } = params;
 
     if (service === FileStorageService.LOCAL) {
-      return await this.localFileService.saveFiles(files, path);
+      return await this.localFileService.saveFiles(files, folder);
     } else if (service === FileStorageService.Cloudinary) {
       return await this.cloudinaryService.uploadFiles(
         files,
