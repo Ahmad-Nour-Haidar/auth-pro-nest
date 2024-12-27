@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { CustomI18nService } from './common/services/custom-i18n.service';
+import { CustomI18nService } from '../common/services/custom-i18n.service';
 
 @Injectable()
 export class AppService {

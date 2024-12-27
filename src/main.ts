@@ -1,8 +1,7 @@
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
+import { AppModule } from './app/app.module';
 import { Logger } from '@nestjs/common';
 import { I18nValidationExceptionFilter, I18nValidationPipe } from 'nestjs-i18n';
-import { TrimPipe } from './common/pipes/trim.pipe';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
