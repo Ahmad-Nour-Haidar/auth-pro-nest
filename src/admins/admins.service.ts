@@ -9,12 +9,17 @@ import { UpdateAdminDto } from './dto/update-admin.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { BcryptService } from '../common/services/bcrypt.service';
 import { Admin } from './entities/admin.entity';
-import { isSuperAdmin, Roles } from './enums/roles.enum';
+import { isSuperAdmin } from './enums/roles.enum';
 import { Repository } from 'typeorm';
 import { MailService } from '../common/services/mail.service';
 import { RandomService } from '../common/services/random.service';
 import { CustomI18nService } from '../common/services/custom-i18n.service';
 import { TranslationKeys } from '../i18n/translation-keys';
+import { MulterFile } from '../file-manager/types/file.types';
+import { FileMetadata } from '../file-manager/classes/file-metadata';
+import { FileStorageService } from '../file-manager/enums/file-storage-service.enum';
+import { FileManagerService } from '../file-manager/file-manager.service';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AdminsService {
@@ -25,6 +30,8 @@ export class AdminsService {
     private readonly mailService: MailService,
     private readonly randomService: RandomService,
     private readonly i18n: CustomI18nService,
+    private readonly fileManagerService: FileManagerService,
+    private readonly configService: ConfigService,
   ) {}
 
   async create(createAdminDto: CreateAdminDto): Promise<Admin> {
@@ -63,19 +70,65 @@ export class AdminsService {
   }
 
   async update(id: string, updateAdminDto: UpdateAdminDto): Promise<Admin> {
-    const admin = await this.getAdminById({ id });
+    const {
+      profile_image,
+      cover_image,
+      delete_profile_image,
+      delete_cover_image,
+      ...dto
+    } = updateAdminDto;
+
+    let admin = await this.getAdminById({ id });
 
     // Check if the target admin is a super admin
     if (isSuperAdmin(admin.roles)) {
-      updateAdminDto = {
-        ...updateAdminDto,
-        roles: [Roles.superAdmin],
-      };
+      delete dto.roles;
     }
-    try {
-      await this.adminsRepository.update({ id }, updateAdminDto);
 
-      return { ...admin, ...updateAdminDto };
+    try {
+      const filesToSave: MulterFile[] = [];
+      const filesToDelete: FileMetadata[] = [];
+      if (cover_image) {
+        filesToSave.push(cover_image);
+      }
+      if ((cover_image || delete_cover_image) && admin.cover_image) {
+        filesToDelete.push(admin.cover_image);
+        admin.cover_image = null;
+      }
+
+      if (profile_image) {
+        filesToSave.push(profile_image);
+      }
+      if ((profile_image || delete_profile_image) && admin.profile_image) {
+        filesToDelete.push(admin.profile_image);
+        admin.profile_image = null;
+      }
+
+      if (filesToDelete.length)
+        await this.fileManagerService.delete(...filesToDelete);
+
+      if (filesToSave.length > 0) {
+        const results = await this.fileManagerService.save({
+          files: filesToSave,
+          service: this.configService.get<FileStorageService>(
+            'FILE_STORAGE_SERVICES',
+          ),
+        });
+
+        // Assign saved files to the user object
+        if (cover_image) {
+          admin.cover_image = results.shift();
+        }
+
+        if (profile_image) {
+          admin.profile_image = results.shift();
+        }
+      }
+
+      // Save updated user data
+      admin = await this.adminsRepository.save({ ...admin, ...dto });
+
+      return admin;
     } catch (error) {
       if (error.code === '23505') {
         // Unique constraint violation error code for PostgresSQL

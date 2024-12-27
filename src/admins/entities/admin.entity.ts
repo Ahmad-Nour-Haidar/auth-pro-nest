@@ -7,6 +7,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { Roles } from '../enums/roles.enum';
+import { FileMetadata } from '../../file-manager/classes/file-metadata';
 
 @Entity('admins')
 export class Admin {
@@ -31,11 +32,11 @@ export class Admin {
   @Column({ type: 'timestamp', nullable: true })
   password_changed_at?: Date;
 
-  @Column({ type: 'varchar', nullable: true })
-  profile_image?: string;
+  @Column({ type: 'jsonb', nullable: true })
+  profile_image?: FileMetadata;
 
-  @Column({ type: 'varchar', nullable: true })
-  cover_image?: string;
+  @Column({ type: 'jsonb', nullable: true })
+  cover_image?: FileMetadata;
 
   @Column({ type: 'timestamp', nullable: true })
   last_login_at?: Date;

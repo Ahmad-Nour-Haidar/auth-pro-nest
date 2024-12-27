@@ -5,7 +5,9 @@ import {
   Get,
   Patch,
   Post,
+  UploadedFiles,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { AdminsService } from './admins.service';
 import { CreateAdminDto } from './dto/create-admin.dto';
@@ -19,9 +21,12 @@ import { Admin } from './entities/admin.entity';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { UpdateMeAdminDto } from './dto/update-me-admin.dto';
 import { JwtAuthAdminGuard } from '../admins-auth/guards/jwt-auth-admin.guard';
-import { LodashService } from '../common/services/lodash.service';
 import { TranslationKeys } from '../i18n/translation-keys';
 import { CustomI18nService } from '../common/services/custom-i18n.service';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
+import { createParseFilePipe } from '../file-manager/validator/files-validation-factory';
+import { AllowedTypes } from '../file-manager/constants/file.constants';
+import { MulterFile } from '../file-manager/types/file.types';
 
 @Controller('admins')
 @UseGuards(JwtAuthAdminGuard, RolesGuard)
@@ -29,7 +34,6 @@ export class AdminsController {
   constructor(
     private readonly adminsService: AdminsService,
     private readonly responseService: ResponseService,
-    private readonly lodashService: LodashService,
     private readonly i18n: CustomI18nService,
   ) {}
 
@@ -46,22 +50,41 @@ export class AdminsController {
   }
 
   @Patch('me')
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      { name: 'cover_image', maxCount: 1 },
+      { name: 'profile_image', maxCount: 1 },
+    ]),
+  )
   async updateMe(
+    @UploadedFiles(
+      createParseFilePipe({
+        fields: {
+          cover_image: {
+            allowedTypes: AllowedTypes.images,
+          },
+          profile_image: {
+            allowedTypes: AllowedTypes.images,
+          },
+        },
+      }),
+    )
+    files: {
+      cover_image?: MulterFile[];
+      profile_image?: MulterFile[];
+    },
     @CurrentAdmin() admin: Admin,
     @Body() updateMeAdminDto: UpdateMeAdminDto,
   ) {
-    const updatedAdmin = await this.adminsService.update(
-      admin.id,
-      updateMeAdminDto,
-    );
+    const updatedAdmin = await this.adminsService.update(admin.id, {
+      ...updateMeAdminDto,
+      cover_image: files?.cover_image?.[0] || null,
+      profile_image: files?.profile_image?.[0] || null,
+    });
     return this.responseService.success(
       this.i18n.tr(TranslationKeys.admin_me),
       {
-        admin: this.lodashService.omitKeys(updatedAdmin, [
-          'password',
-          'password_changed_at',
-          'verify_code',
-        ]),
+        admin: transformToDto(AdminResponseDto, updatedAdmin),
       },
     );
   }
@@ -98,11 +121,7 @@ export class AdminsController {
     return this.responseService.success(
       this.i18n.tr(TranslationKeys.admin_me),
       {
-        admin: this.lodashService.omitKeys(admin, [
-          'password',
-          'password_changed_at',
-          'verify_code',
-        ]),
+        admin: transformToDto(AdminResponseDto, admin),
       },
     );
   }

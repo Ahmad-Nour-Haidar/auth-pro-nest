@@ -81,9 +81,9 @@ export class UsersService {
       ...dto
     } = updateUserDto;
 
-    try {
-      let user = await this.getUserById({ id });
+    let user = await this.getUserById({ id });
 
+    try {
       const filesToSave: MulterFile[] = [];
       const filesToDelete: FileMetadata[] = [];
       if (cover_image) {
