@@ -9,7 +9,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { BcryptService } from '../common/services/bcrypt.service';
 import { User } from './entities/user.entity';
-import { Repository } from 'typeorm';
+import { ArrayOverlap, In, Like, Repository } from 'typeorm';
 import { Roles } from '../admins/enums/roles.enum';
 import { CreateMethod } from './enums/create-method.enum';
 import { MailService } from '../common/services/mail.service';
@@ -21,6 +21,10 @@ import { FileStorageService } from '../file-manager/enums/file-storage-service.e
 import { FileMetadata } from '../file-manager/classes/file-metadata';
 import { MulterFile } from '../file-manager/types/file.types';
 import { ConfigService } from '@nestjs/config';
+import { paginate } from '../common/pagination/paginate.function';
+import { transformToDto } from '../common/util/transform.util';
+import { UserResponseDto } from './dto/user-response.dto';
+import { FindAllQuery } from '../common/pagination/pagination.interface';
 
 @Injectable()
 export class UsersService {
@@ -34,6 +38,21 @@ export class UsersService {
     private readonly fileManagerService: FileManagerService,
     private readonly configService: ConfigService,
   ) {}
+
+  async findAll(query?: FindAllQuery<User>) {
+    const { data, pagination } = await paginate({
+      repository: this.usersRepository,
+      ...query,
+    });
+    return {
+      users: data.map((user) => transformToDto(UserResponseDto, user)),
+      pagination,
+    };
+  }
+
+  async findOne(id: string): Promise<User> {
+    return this.getUserById({ id });
+  }
 
   async create(createUserDto: CreateUserDto): Promise<User> {
     // Check if the email or username already exists
@@ -60,16 +79,6 @@ export class UsersService {
     });
 
     return this.usersRepository.save(user);
-  }
-
-  async findAll(): Promise<User[]> {
-    return this.usersRepository.find({
-      withDeleted: true,
-    });
-  }
-
-  async findOne(id: string): Promise<User> {
-    return this.getUserById({ id });
   }
 
   async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {

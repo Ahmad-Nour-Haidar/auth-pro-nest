@@ -20,6 +20,11 @@ import { FileMetadata } from '../file-manager/classes/file-metadata';
 import { FileStorageService } from '../file-manager/enums/file-storage-service.enum';
 import { FileManagerService } from '../file-manager/file-manager.service';
 import { ConfigService } from '@nestjs/config';
+import { FindAllQuery } from '../common/pagination/pagination.interface';
+import { User } from '../users/entities/user.entity';
+import { paginate } from '../common/pagination/paginate.function';
+import { transformToDto } from '../common/util/transform.util';
+import { AdminResponseDto } from './dto/admin-response.dto';
 
 @Injectable()
 export class AdminsService {
@@ -59,10 +64,15 @@ export class AdminsService {
     return this.adminsRepository.save(admin);
   }
 
-  async findAll(): Promise<Admin[]> {
-    return this.adminsRepository.find({
-      withDeleted: true,
+  async findAll(query?: FindAllQuery<User>) {
+    const { data, pagination } = await paginate({
+      repository: this.adminsRepository,
+      ...query,
     });
+    return {
+      admins: data.map((admin) => transformToDto(AdminResponseDto, admin)),
+      pagination,
+    };
   }
 
   async findOne(id: string): Promise<Admin> {

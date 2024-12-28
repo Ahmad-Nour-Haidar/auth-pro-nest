@@ -19,6 +19,12 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { CustomI18nService } from '../common/services/custom-i18n.service';
 import { TranslationKeys } from '../i18n/translation-keys';
 import { JwtAuthAdminGuard } from '../admins-auth/guards/jwt-auth-admin.guard';
+import { PaginationParams } from '../common/pagination/pagination-params.decorator';
+import { PaginationDto } from '../common/pagination/pagination.dto';
+import {
+  Sorting,
+  SortingParams,
+} from '../common/pagination/sort-params.decorator';
 
 @Controller('users')
 @UseGuards(JwtAuthAdminGuard, RolesGuard)
@@ -56,13 +62,18 @@ export class UsersController {
   }
 
   @Get()
-  async findAll() {
-    const users = await this.usersService.findAll();
+  async findAll(
+    @PaginationParams() paginationDto: PaginationDto,
+    @SortingParams(['full_name', 'username', 'email'])
+    sorting: Sorting,
+  ) {
+    const result = await this.usersService.findAll({
+      paginationDto,
+      sorting,
+    });
     return this.responseService.success(
       this.i18n.tr(TranslationKeys.users_retrieved),
-      {
-        users: users.map((user) => transformToDto(UserResponseDto, user)),
-      },
+      result,
     );
   }
 
