@@ -1,15 +1,10 @@
-import {
-  ConflictException,
-  Injectable,
-  InternalServerErrorException,
-  NotFoundException,
-} from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { UpdateAdminDto } from './dto/update-admin.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { BcryptService } from '../common/services/bcrypt.service';
 import { Admin } from './entities/admin.entity';
-import { isSuperAdmin } from './enums/roles.enum';
+import { isSuperAdmin, Roles } from './enums/roles.enum';
 import { Repository } from 'typeorm';
 import { MailService } from '../common/services/mail.service';
 import { RandomService } from '../common/services/random.service';
@@ -20,14 +15,12 @@ import { FileMetadata } from '../file-manager/classes/file-metadata';
 import { FileStorageService } from '../file-manager/enums/file-storage-service.enum';
 import { FileManagerService } from '../file-manager/file-manager.service';
 import { ConfigService } from '@nestjs/config';
-import { FindAllQuery } from '../common/pagination/pagination.interface';
-import { User } from '../users/entities/user.entity';
-import { paginate } from '../common/pagination/paginate.function';
 import { transformToDto } from '../common/util/transform.util';
 import { AdminResponseDto } from './dto/admin-response.dto';
+import { GenericRepository } from '../common/abstractions/generic-repository.repository';
 
 @Injectable()
-export class AdminsService {
+export class AdminsService extends GenericRepository<Admin> {
   constructor(
     @InjectRepository(Admin)
     private readonly adminsRepository: Repository<Admin>,
@@ -37,7 +30,9 @@ export class AdminsService {
     private readonly i18n: CustomI18nService,
     private readonly fileManagerService: FileManagerService,
     private readonly configService: ConfigService,
-  ) {}
+  ) {
+    super(adminsRepository);
+  }
 
   async create(createAdminDto: CreateAdminDto): Promise<Admin> {
     // Check if the email or username already exists
@@ -64,11 +59,14 @@ export class AdminsService {
     return this.adminsRepository.save(admin);
   }
 
-  async findAll(query?: FindAllQuery<User>) {
-    const { data, pagination } = await paginate({
-      repository: this.adminsRepository,
-      ...query,
+  async findAll(query?: Record<string, any>) {
+    const { data, pagination } = await super.find_all(query, {
+      username: 'string',
+      full_name: 'string',
+      email: 'string',
+      roles: { type: 'enum', enum: Roles },
     });
+
     return {
       admins: data.map((admin) => transformToDto(AdminResponseDto, admin)),
       pagination,
@@ -76,7 +74,7 @@ export class AdminsService {
   }
 
   async findOne(id: string): Promise<Admin> {
-    return this.getAdminById({ id });
+    return super.get_one({ id });
   }
 
   async update(id: string, updateAdminDto: UpdateAdminDto): Promise<Admin> {
@@ -88,7 +86,7 @@ export class AdminsService {
       ...dto
     } = updateAdminDto;
 
-    let admin = await this.getAdminById({ id });
+    let admin = await super.get_one({ id });
 
     // Check if the target admin is a super admin
     if (isSuperAdmin(admin.roles)) {
@@ -157,53 +155,57 @@ export class AdminsService {
     }
   }
 
-  async softDelete(id: string): Promise<Admin> {
-    const admin = await this.getAdminById({ id, withDeleted: true });
-    if (admin.deleted_at) {
-      throw new ConflictException(
-        this.i18n.tr(TranslationKeys.account_already_soft_deleted, {
-          args: { id },
-        }),
-      );
-    }
-    admin.deleted_at = new Date();
-    return this.adminsRepository.save(admin);
+  async softDelete(id: string): Promise<void> {
+    return super.soft_delete(id);
+
+    // const admin = await super.get_one({ id });
+    // if (admin.deleted_at) {
+    //   throw new ConflictException(
+    //     this.i18n.tr(TranslationKeys.account_already_soft_deleted, {
+    //       args: { id },
+    //     }),
+    //   );
+    // }
+    // admin.deleted_at = new Date();
+    // return this.adminsRepository.save(admin);
   }
 
   async restore(id: string): Promise<Admin> {
-    // Check if the admin exists and is soft deleted
-    const admin = await this.getAdminById({ id, withDeleted: true });
+    await super.restore_entity(id);
+    return await super.get_one({ id });
 
-    if (!admin.deleted_at) {
-      throw new ConflictException(
-        this.i18n.tr(TranslationKeys.account_not_soft_deleted, {
-          args: { id },
-        }),
-      );
-    }
-
-    // Restore the admin
-    const result = await this.adminsRepository.restore(id);
-
-    if (result.affected === 1) {
-      admin.deleted_at = null;
-      return admin;
-    } else {
-      throw new InternalServerErrorException(
-        this.i18n.tr(TranslationKeys.account_restore_error, {
-          args: { id },
-        }),
-      );
-    }
+    // // Check if the admin exists and is soft deleted
+    // const admin = await super.get_one({ id });
+    //
+    // if (!admin.deleted_at) {
+    //   throw new ConflictException(
+    //     this.i18n.tr(TranslationKeys.account_not_soft_deleted, {
+    //       args: { id },
+    //     }),
+    //   );
+    // }
+    //
+    // // Restore the admin
+    // const result = await this.adminsRepository.restore(id);
+    //
+    // if (result.affected === 1) {
+    //   admin.deleted_at = null;
+    //   return admin;
+    // } else {
+    //   throw new InternalServerErrorException(
+    //     this.i18n.tr(TranslationKeys.account_restore_error, {
+    //       args: { id },
+    //     }),
+    //   );
+    // }
   }
 
-  async hardDelete(id: string): Promise<Admin> {
-    const admin = await this.getAdminById({ id });
-    return this.adminsRepository.remove(admin);
+  async hardDelete(id: string): Promise<void> {
+    return super.hard_delete(id);
   }
 
   async blockAdmin(id: string): Promise<Admin> {
-    const admin = await this.getAdminById({ id, withDeleted: true });
+    const admin = await super.get_one({ id });
     if (admin.blocked_at) {
       throw new ConflictException(
         this.i18n.tr(TranslationKeys.account_already_blocked, {
@@ -217,7 +219,7 @@ export class AdminsService {
   }
 
   async unblockAdmin(id: string): Promise<Admin> {
-    const admin = await this.getAdminById({ id, withDeleted: true });
+    const admin = await super.get_one({ id });
     if (!admin.blocked_at) {
       throw new ConflictException(
         this.i18n.tr(TranslationKeys.account_not_blocked, {
@@ -250,25 +252,12 @@ export class AdminsService {
       }
     }
   }
-
-  private async getAdminById({
-    id,
-    withDeleted = true,
-  }: {
-    id: string;
-    withDeleted?: boolean;
-  }): Promise<Admin> {
-    const admin = await this.adminsRepository.findOne({
-      where: { id },
-      withDeleted: withDeleted, // Include soft-deleted records if true
-    });
-    if (!admin) {
-      throw new NotFoundException(
-        this.i18n.tr(TranslationKeys.account_not_found_with_id, {
-          args: { id },
-        }),
-      );
-    }
-    return admin;
-  }
 }
+
+/// if (!admin) {
+//       throw new NotFoundException(
+//         this.i18n.tr(TranslationKeys.account_not_found_with_id, {
+//           args: { id },
+//         }),
+//       );
+//     }

@@ -5,6 +5,7 @@ import {
   Get,
   Patch,
   Post,
+  Query,
   UploadedFiles,
   UseGuards,
   UseInterceptors,
@@ -27,12 +28,6 @@ import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { createParseFilePipe } from '../file-manager/validator/files-validation-factory';
 import { AllowedTypes } from '../file-manager/constants/file.constants';
 import { MulterFile } from '../file-manager/types/file.types';
-import { PaginationDto } from '../common/pagination/pagination.dto';
-import { PaginationParams } from '../common/pagination/pagination-params.decorator';
-import {
-  Sorting,
-  SortingParams,
-} from '../common/pagination/sort-params.decorator';
 
 @Controller('admins')
 @UseGuards(JwtAuthAdminGuard, RolesGuard)
@@ -112,16 +107,8 @@ export class AdminsController {
 
   @Get()
   @SuperAdminOnly()
-  @Get()
-  async findAll(
-    @PaginationParams() paginationDto: PaginationDto,
-    @SortingParams(['full_name', 'username', 'email', 'roles'])
-    sorting: Sorting,
-  ) {
-    const result = await this.adminsService.findAll({
-      paginationDto,
-      sorting,
-    });
+  async findAll(@Query() query: Record<string, any>) {
+    const result = await this.adminsService.findAll(query);
     return this.responseService.success(
       this.i18n.tr(TranslationKeys.admins_retrieved),
       result,

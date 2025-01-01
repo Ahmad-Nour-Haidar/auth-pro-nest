@@ -30,5 +30,5 @@ export class CreateAdminDto {
     enumType: Roles,
     excludedRoles: [Roles.superAdmin, Roles.user],
   })
-  readonly roles: Roles[];
+  roles: Roles[];
 }

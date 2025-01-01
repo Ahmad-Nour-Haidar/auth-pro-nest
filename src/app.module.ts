@@ -22,6 +22,7 @@ import { FileManagerModule } from './file-manager/file-manager.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import * as process from 'node:process';
+import { WithDeletedMiddleware } from './middleware/with-deleted.middleware';
 
 @Global()
 @Module({
@@ -105,5 +106,6 @@ export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     // Apply to all routes, adjust as needed
     consumer.apply(LoggerMiddleware).forRoutes('*');
+    consumer.apply(WithDeletedMiddleware).forRoutes('*');
   }
 }

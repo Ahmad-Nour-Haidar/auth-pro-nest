@@ -1,19 +1,10 @@
-import {
-  Column,
-  CreateDateColumn,
-  DeleteDateColumn,
-  Entity,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
-} from 'typeorm';
+import { Column, Entity } from 'typeorm';
 import { Roles } from '../enums/roles.enum';
 import { FileMetadata } from '../../file-manager/classes/file-metadata';
+import { BaseEntity } from '../../common/abstractions/base.entity';
 
 @Entity('admins')
-export class Admin {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
-
+export class Admin extends BaseEntity {
   @Column({ unique: true, type: 'varchar', length: 255 })
   email: string;
 
@@ -44,15 +35,6 @@ export class Admin {
   @Column({ type: 'timestamp', nullable: true })
   last_logout_at?: Date;
 
-  @CreateDateColumn({ type: 'timestamp' })
-  created_at: Date;
-
-  @UpdateDateColumn({ type: 'timestamp' })
-  updated_at: Date;
-
-  @DeleteDateColumn({ type: 'timestamp', nullable: true })
-  deleted_at?: Date;
-
   @Column({ type: 'timestamp', nullable: true })
   blocked_at?: Date;
 
@@ -62,15 +44,15 @@ export class Admin {
   @Column({ type: 'timestamp', nullable: true })
   verified_at?: Date;
 
-  @Column({ type: 'timestamp', nullable: true })
-  two_factor_enabled_at: Date;
-
   @Column({ type: 'varchar', nullable: true })
   two_factor_secret?: string;
 
-  @Column({ type: 'timestamp', nullable: true })
-  two_factor_verified_at?: Date;
-
   @Column({ type: 'varchar', nullable: true })
   two_factor_qr_code?: string;
+
+  @Column({ type: 'timestamp', nullable: true })
+  two_factor_enabled_at: Date;
+
+  @Column({ type: 'timestamp', nullable: true })
+  two_factor_verified_at?: Date;
 }
