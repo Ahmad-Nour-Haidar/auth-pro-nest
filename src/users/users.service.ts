@@ -1,15 +1,10 @@
-import {
-  ConflictException,
-  Injectable,
-  InternalServerErrorException,
-  NotFoundException,
-} from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { BcryptService } from '../common/services/bcrypt.service';
 import { User } from './entities/user.entity';
-import { ArrayOverlap, In, Like, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { Roles } from '../admins/enums/roles.enum';
 import { CreateMethod } from './enums/create-method.enum';
 import { MailService } from '../common/services/mail.service';
@@ -21,13 +16,12 @@ import { FileStorageService } from '../file-manager/enums/file-storage-service.e
 import { FileMetadata } from '../file-manager/classes/file-metadata';
 import { MulterFile } from '../file-manager/types/file.types';
 import { ConfigService } from '@nestjs/config';
-import { paginate } from '../common/pagination/paginate.function';
+import { GenericRepository } from '../common/abstractions/generic-repository.repository';
 import { transformToDto } from '../common/util/transform.util';
-import { UserResponseDto } from './dto/user-response.dto';
-import { FindAllQuery } from '../common/pagination/pagination.interface';
+import { AdminResponseDto } from '../admins/dto/admin-response.dto';
 
 @Injectable()
-export class UsersService {
+export class UsersService extends GenericRepository<User> {
   constructor(
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
@@ -37,21 +31,25 @@ export class UsersService {
     private readonly i18n: CustomI18nService,
     private readonly fileManagerService: FileManagerService,
     private readonly configService: ConfigService,
-  ) {}
+  ) {
+    super(usersRepository);
+  }
 
-  async findAll(query?: FindAllQuery<User>) {
-    const { data, pagination } = await paginate({
-      repository: this.usersRepository,
-      ...query,
+  async findAll(query?: Record<string, any>) {
+    const { data, pagination } = await super.find_all(query, {
+      username: 'string',
+      full_name: 'string',
+      email: 'string',
     });
+
     return {
-      users: data.map((user) => transformToDto(UserResponseDto, user)),
+      admins: data.map((admin) => transformToDto(AdminResponseDto, admin)),
       pagination,
     };
   }
 
   async findOne(id: string): Promise<User> {
-    return this.getUserById({ id });
+    return super.get_one({ id });
   }
 
   async create(createUserDto: CreateUserDto): Promise<User> {
@@ -90,7 +88,7 @@ export class UsersService {
       ...dto
     } = updateUserDto;
 
-    let user = await this.getUserById({ id });
+    let user = await super.get_one({ id });
 
     try {
       const filesToSave: MulterFile[] = [];
@@ -155,51 +153,53 @@ export class UsersService {
     }
   }
 
-  async softDelete(id: string): Promise<User> {
-    const user = await this.getUserById({ id, withDeleted: true });
-    if (user.deleted_at) {
-      throw new ConflictException(
-        this.i18n.tr(TranslationKeys.account_already_soft_deleted, {
-          args: { id },
-        }),
-      );
-    }
-    user.deleted_at = new Date();
-    return this.usersRepository.save(user);
+  async softDelete(id: string): Promise<void> {
+    return super.soft_delete(id);
+    // const user = await this.getUserById({ id, withDeleted: true });
+    // if (user.deleted_at) {
+    //   throw new ConflictException(
+    //     this.i18n.tr(TranslationKeys.account_already_soft_deleted, {
+    //       args: { id },
+    //     }),
+    //   );
+    // }
+    // user.deleted_at = new Date();
+    // return this.usersRepository.save(user);
   }
 
   async restore(id: string): Promise<User> {
-    const user = await this.getUserById({ id, withDeleted: true });
-
-    if (!user.deleted_at) {
-      throw new ConflictException(
-        this.i18n.tr(TranslationKeys.account_not_soft_deleted, {
-          args: { id },
-        }),
-      );
-    }
-
-    const result = await this.usersRepository.restore(id);
-
-    if (result.affected === 1) {
-      user.deleted_at = null;
-      return user;
-    } else {
-      throw new InternalServerErrorException(
-        this.i18n.tr(TranslationKeys.account_restore_error, {
-          args: { id },
-        }),
-      );
-    }
+    await super.restore_entity(id);
+    return await super.get_one({ id });
+    // const user = await this.getUserById({ id, withDeleted: true });
+    //
+    // if (!user.deleted_at) {
+    //   throw new ConflictException(
+    //     this.i18n.tr(TranslationKeys.account_not_soft_deleted, {
+    //       args: { id },
+    //     }),
+    //   );
+    // }
+    //
+    // const result = await this.usersRepository.restore(id);
+    //
+    // if (result.affected === 1) {
+    //   user.deleted_at = null;
+    //   return user;
+    // } else {
+    //   throw new InternalServerErrorException(
+    //     this.i18n.tr(TranslationKeys.account_restore_error, {
+    //       args: { id },
+    //     }),
+    //   );
+    // }
   }
 
-  async hardDelete(id: string): Promise<User> {
-    const user = await this.getUserById({ id });
-    return this.usersRepository.remove(user);
+  async hardDelete(id: string): Promise<void> {
+    return super.hard_delete(id);
   }
 
   async blockUser(id: string): Promise<User> {
-    const user = await this.getUserById({ id, withDeleted: true });
+    const user = await super.get_one({ id });
     if (user.blocked_at) {
       throw new ConflictException(
         this.i18n.tr(TranslationKeys.account_already_blocked, {
@@ -213,7 +213,7 @@ export class UsersService {
   }
 
   async unblockUser(id: string): Promise<User> {
-    const user = await this.getUserById({ id, withDeleted: true });
+    const user = await super.get_one({ id });
     if (!user.blocked_at) {
       throw new ConflictException(
         this.i18n.tr(TranslationKeys.account_not_blocked, {
@@ -245,25 +245,25 @@ export class UsersService {
     }
   }
 
-  private async getUserById({
-    id,
-    withDeleted = true,
-  }: {
-    id: string;
-    withDeleted?: boolean;
-  }): Promise<User> {
-    // await this.usersRepository.findOneBy({ id }, { withDeleted: true });
-    const user = await this.usersRepository.findOne({
-      where: { id },
-      withDeleted: withDeleted,
-    });
-    if (!user) {
-      throw new NotFoundException(
-        this.i18n.tr(TranslationKeys.account_not_found_with_id, {
-          args: { id },
-        }),
-      );
-    }
-    return user;
-  }
+  // private async getUserById({
+  //   id,
+  //   withDeleted = true,
+  // }: {
+  //   id: string;
+  //   withDeleted?: boolean;
+  // }): Promise<User> {
+  //   // await this.usersRepository.findOneBy({ id }, { withDeleted: true });
+  //   const user = await this.usersRepository.findOne({
+  //     where: { id },
+  //     withDeleted: withDeleted,
+  //   });
+  //   if (!user) {
+  //     throw new NotFoundException(
+  //       this.i18n.tr(TranslationKeys.account_not_found_with_id, {
+  //         args: { id },
+  //       }),
+  //     );
+  //   }
+  //   return user;
+  // }
 }
