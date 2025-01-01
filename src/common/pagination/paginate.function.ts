@@ -49,8 +49,8 @@ export async function paginate<Entity>(
     data,
     pagination: {
       total,
-      limit,
       count: data.length,
+      limit,
       page,
       first: 1,
       last: totalPages,

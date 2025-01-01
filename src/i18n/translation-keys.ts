@@ -85,7 +85,6 @@ export class TranslationKeys {
   static registration_successful = 'translations.registration_successful';
   static google_sign_in_successful = 'translations.google_sign_in_successful';
   static language_or_device_token_required = 'translations.language_or_device_token_required';
-  static entity_not_found = 'translations.entity_not_found';
   static password_recently_changed = 'translations.password_recently_changed';
   static logged_in_after_token_issued = 'translations.logged_in_after_token_issued';
   static logged_out_after_token_issued = 'translations.logged_out_after_token_issued';
@@ -104,4 +103,5 @@ export class TranslationKeys {
   static notification_retrieved_successfully = 'translations.notification_retrieved_successfully';
   static notification_marked_successfully = 'translations.notification_marked_successfully';
   static notifications_marked_successfully = 'translations.notifications_marked_successfully';
+  static entity_not_found = 'translations.entity_not_found';
 }

@@ -18,7 +18,7 @@ import { MulterFile } from '../file-manager/types/file.types';
 import { ConfigService } from '@nestjs/config';
 import { GenericRepository } from '../common/abstractions/generic-repository.repository';
 import { transformToDto } from '../common/util/transform.util';
-import { AdminResponseDto } from '../admins/dto/admin-response.dto';
+import { UserResponseDto } from './dto/user-response.dto';
 
 @Injectable()
 export class UsersService extends GenericRepository<User> {
@@ -46,7 +46,7 @@ export class UsersService extends GenericRepository<User> {
     });
 
     return {
-      admins: data.map((admin) => transformToDto(AdminResponseDto, admin)),
+      user: data.map((user) => transformToDto(UserResponseDto, user)),
       pagination,
     };
   }

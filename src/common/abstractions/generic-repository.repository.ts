@@ -1,5 +1,5 @@
 import { FindOptionsWhere, Repository } from 'typeorm';
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { NotFoundException } from '@nestjs/common';
 import { BaseEntity } from './base.entity';
 import { parsePagination } from '../pagination/pagination-params.decorator';
@@ -10,10 +10,14 @@ import {
 } from '../pagination/filter.util';
 import { paginate } from '../pagination/paginate.function';
 import { parseSorting } from '../pagination/sort-params.decorator';
+import { CustomI18nService } from '../services/custom-i18n.service';
+import { TranslationKeys } from '../../i18n/translation-keys';
 
 @Injectable()
 export class GenericRepository<T extends BaseEntity> {
   constructor(private readonly repository: Repository<T>) {}
+
+  @Inject() private readonly i18n_: CustomI18nService;
 
   // Find all entities
   async find_all({
@@ -70,7 +74,7 @@ export class GenericRepository<T extends BaseEntity> {
       withDeleted: withDeleted, // Include soft-deleted records if true
     });
     if (!entity && throwIfNull) {
-      throw new NotFoundException(`Entity with ID ${id} not found`);
+      throw new NotFoundException(this.notFoundMsg(id));
     }
     return entity;
   }
@@ -79,7 +83,9 @@ export class GenericRepository<T extends BaseEntity> {
   async soft_delete(id: string): Promise<void> {
     const result = await this.repository.softDelete(id);
     if (!result.affected) {
-      throw new NotFoundException(`Entity with ID ${id} not found`);
+      throw new NotFoundException(
+        `${this.repository.metadata.name} with ID ${id} not found`,
+      );
     }
   }
 
@@ -87,7 +93,9 @@ export class GenericRepository<T extends BaseEntity> {
   async hard_delete(id: string): Promise<void> {
     const result = await this.repository.delete(id);
     if (!result.affected) {
-      throw new NotFoundException(`Entity with ID ${id} not found`);
+      throw new NotFoundException(
+        `${this.repository.metadata.name} with ID ${id} not found`,
+      );
     }
   }
 
@@ -95,7 +103,13 @@ export class GenericRepository<T extends BaseEntity> {
   async restore_entity(id: string): Promise<void> {
     const result = await this.repository.restore(id);
     if (!result.affected) {
-      throw new NotFoundException(`Entity with ID ${id} not found`);
+      throw new NotFoundException(this.notFoundMsg(id));
     }
+  }
+
+  private notFoundMsg(id: any): string {
+    return this.i18n_.tr(TranslationKeys.entity_not_found, {
+      args: { id, name: this.repository.metadata.name },
+    });
   }
 }

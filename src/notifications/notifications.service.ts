@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { FirebaseAdminService } from './services/firebase-admin.service';
 import { SendNotificationByEntityIdDto } from './dto/send-notification-by-entity-id.dto';
 import { DeviceTokenService } from '../device-token/device-token.service';
@@ -11,10 +11,8 @@ import {
 } from 'firebase-admin/lib/messaging/messaging-api';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CustomI18nService } from '../common/services/custom-i18n.service';
 import { Notification } from './entities/notification.entity';
 import { CreateNotificationDto } from './dto/create-notification.dto';
-import { TranslationKeys } from '../i18n/translation-keys';
 import { GenericRepository } from '../common/abstractions/generic-repository.repository';
 
 @Injectable()
@@ -22,7 +20,7 @@ export class NotificationsService extends GenericRepository<Notification> {
   constructor(
     @InjectRepository(Notification)
     private readonly notificationsRepository: Repository<Notification>,
-    private readonly i18n: CustomI18nService,
+    // private readonly i18n: CustomI18nService,
     private readonly firebaseAdminService: FirebaseAdminService,
     private readonly deviceTokenService: DeviceTokenService,
   ) {
@@ -52,7 +50,7 @@ export class NotificationsService extends GenericRepository<Notification> {
   }
 
   async findOne(id: string): Promise<Notification> {
-    return this.getNotificationById(id);
+    return super.get_one({ id });
   }
 
   async findOneByEntityId(entity_id: string): Promise<Notification> {
@@ -61,7 +59,7 @@ export class NotificationsService extends GenericRepository<Notification> {
 
   async markAsRead(id: string): Promise<Notification> {
     await this.notificationsRepository.update({ id }, { read_at: new Date() });
-    return this.getNotificationById(id);
+    return super.get_one({ id });
   }
 
   async markAllAsRead(entity_id: string): Promise<void> {
@@ -71,15 +69,17 @@ export class NotificationsService extends GenericRepository<Notification> {
     );
   }
 
-  private async getNotificationById(id: string): Promise<Notification> {
-    const notification = await this.notificationsRepository.findOneBy({ id });
-    if (!notification) {
-      throw new NotFoundException(
-        this.i18n.tr(TranslationKeys.notification_not_found, { args: { id } }),
-      );
-    }
-    return notification;
-  }
+  // private async getNotificationById(id: string): Promise<Notification> {
+  //   const notification = await this.notificationsRepository.findOneBy({ id });
+  //   if (!notification) {
+  //     throw new NotFoundException(
+  //       this.i18n.tr(TranslationKeys.entity_not_found, {
+  //         args: { id, name: this.notificationsRepository.metadata.name },
+  //       }),
+  //     );
+  //   }
+  //   return notification;
+  // }
 
   async sendNotificationByEntityId(
     dto: SendNotificationByEntityIdDto,

@@ -80,7 +80,6 @@
   "registration_successful": "Registration successfully, Welcome!",
   "google_sign_in_successful": "Google sign in successfully",
   "language_or_device_token_required": "You must provide either a language or a device token.",
-  "entity_not_found": "The requested item could not be found.",
   "password_recently_changed": "You recently changed your password. Please log in again.",
   "logged_in_after_token_issued": "You have logged in after the token was issued. Please log in again.",
   "logged_out_after_token_issued": "You have logged out after the token was issued. Please log in again.",
@@ -98,5 +97,6 @@
   "notifications_retrieved_successfully": "Notifications retrieved successfully.",
   "notification_retrieved_successfully": "Notification retrieved successfully.",
   "notification_marked_successfully": "Notification marked successfully.",
-  "notifications_marked_successfully": "Notifications marked successfully."
+  "notifications_marked_successfully": "Notifications marked successfully.",
+  "entity_not_found": "There is no {name} with this ID {id}."
 }

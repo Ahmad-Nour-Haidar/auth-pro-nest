@@ -24,7 +24,7 @@ import { TranslationKeys } from '../i18n/translation-keys';
 import { EntityTypeEnum } from '../common/enums/entity-type.enum';
 
 @Controller('notifications')
-@UseGuards(JwtAuthGuard)
+// @UseGuards(JwtAuthGuard)
 export class NotificationsController {
   constructor(
     private readonly notificationsService: NotificationsService,
