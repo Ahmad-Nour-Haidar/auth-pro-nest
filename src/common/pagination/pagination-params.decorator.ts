@@ -23,11 +23,11 @@ export const PaginationParams = createParamDecorator(
   },
 );
 
-export function parsePagination(query: Record<string, any>): PaginationData {
+export function parsePagination(query?: Record<string, any>): PaginationData {
   return _handle(query);
 }
 
-function _handle(query: Record<string, any>): PaginationData {
+function _handle(query: Record<string, any> = {}): PaginationData {
   // Parse and validate page
   const page = Math.max(
     parseInt(query.page?.toString(), 10) || DEFAULT_PAGE,
@@ -43,8 +43,8 @@ function _handle(query: Record<string, any>): PaginationData {
     DEFAULT_MAX_LIMIT,
   );
 
-  delete query.page;
-  delete query.limit;
+  delete query?.page;
+  delete query?.limit;
 
   return { page, limit, skip: (page - 1) * limit };
 }

@@ -11,6 +11,7 @@ export interface PaginateParams<Entity> {
 
 export interface Pagination {
   total: number; // Total items
+  count: number; // Count items returned
   limit: number; // Items per page
   page: number; // Current page
   first: number; // Always 1
@@ -49,6 +50,7 @@ export async function paginate<Entity>(
     pagination: {
       total,
       limit,
+      count: data.length,
       page,
       first: 1,
       last: totalPages,

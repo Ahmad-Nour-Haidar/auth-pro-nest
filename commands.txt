@@ -69,8 +69,3 @@ npm install --save-dev @types/uuid
 npm install lodash
 npm install --save-dev @types/lodash
 npm install @nestjs/passport passport passport-local @nestjs/jwt passport-jwt bcrypt
-
-
-// todo
- - in filter deleted at
- - filtering

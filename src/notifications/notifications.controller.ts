@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Patch, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { SendNotificationByEntityIdDto } from './dto/send-notification-by-entity-id.dto';
 import { NotificationsService } from './notifications.service';
 import { SendNotificationByEntitiesIdsDto } from './dto/send-notification-by-entities-ids.dto';
@@ -25,11 +33,14 @@ export class NotificationsController {
   ) {}
 
   @Get()
-  async findAll(@CurrentUser() entity: User | Admin) {
-    const notifications = await this.notificationsService.findAll(entity.id);
+  async findAll(
+    @CurrentUser() entity: User | Admin,
+    @Query() query: Record<string, any>,
+  ) {
+    const result = await this.notificationsService.findAll(entity.id, query);
     return this.responseService.success(
       this.i18n.tr(TranslationKeys.notifications_retrieved_successfully),
-      { notifications },
+      result,
     );
   }
 

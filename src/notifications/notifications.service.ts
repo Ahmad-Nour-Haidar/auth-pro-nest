@@ -15,23 +15,40 @@ import { CustomI18nService } from '../common/services/custom-i18n.service';
 import { Notification } from './entities/notification.entity';
 import { CreateNotificationDto } from './dto/create-notification.dto';
 import { TranslationKeys } from '../i18n/translation-keys';
+import { GenericRepository } from '../common/abstractions/generic-repository.repository';
 
 @Injectable()
-export class NotificationsService {
+export class NotificationsService extends GenericRepository<Notification> {
   constructor(
     @InjectRepository(Notification)
     private readonly notificationsRepository: Repository<Notification>,
     private readonly i18n: CustomI18nService,
     private readonly firebaseAdminService: FirebaseAdminService,
     private readonly deviceTokenService: DeviceTokenService,
-  ) {}
+  ) {
+    super(notificationsRepository);
+  }
 
   async create(dto: CreateNotificationDto): Promise<Notification> {
     return this.notificationsRepository.save(dto);
   }
 
-  async findAll(entity_id: string): Promise<Notification[]> {
-    return this.notificationsRepository.findBy({ entity_id });
+  async findAll(entity_id: string, query?: Record<string, any>) {
+    const { data, pagination } = await super.find_all({
+      query,
+      allowedFields: {
+        title: 'string',
+        body: 'string',
+      },
+      filterDeveloper: {
+        entity_id,
+      },
+    });
+
+    return {
+      notifications: data,
+      pagination,
+    };
   }
 
   async findOne(id: string): Promise<Notification> {

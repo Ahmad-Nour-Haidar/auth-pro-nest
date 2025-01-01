@@ -1,4 +1,4 @@
-import { Repository } from 'typeorm';
+import { FindOptionsWhere, Repository } from 'typeorm';
 import { Injectable } from '@nestjs/common';
 import { NotFoundException } from '@nestjs/common';
 import { BaseEntity } from './base.entity';
@@ -16,10 +16,15 @@ export class GenericRepository<T extends BaseEntity> {
   constructor(private readonly repository: Repository<T>) {}
 
   // Find all entities
-  async find_all(
-    query?: Record<string, any>,
-    allowedFields?: Record<string, FieldType | FieldTypeObject>,
-  ) {
+  async find_all({
+    query = {},
+    allowedFields,
+    filterDeveloper,
+  }: {
+    query?: Record<string, any>;
+    allowedFields?: Partial<Record<keyof T, FieldType | FieldTypeObject>>;
+    filterDeveloper?: FindOptionsWhere<T>;
+  }) {
     let validParams: string[] = [];
 
     const withDeleted: boolean = query.withDeleted ?? false;
@@ -44,7 +49,7 @@ export class GenericRepository<T extends BaseEntity> {
     return paginate<T>({
       repository: this.repository,
       paginationData,
-      where,
+      where: { ...where, ...filterDeveloper },
       sorting,
       withDeleted,
     });

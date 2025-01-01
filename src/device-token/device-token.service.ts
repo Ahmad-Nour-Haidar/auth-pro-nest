@@ -18,24 +18,19 @@ export class DeviceTokenService {
     private readonly i18n: CustomI18nService,
   ) {}
 
-  async set(createDeviceTokenDto: CreateDeviceTokenDto): Promise<DeviceToken> {
-    const { entity_id, firebase_device_token, entity_type, lang } =
-      createDeviceTokenDto;
-
+  async set(dto: CreateDeviceTokenDto): Promise<DeviceToken> {
     try {
       // Check if a record with the given entity_id exists
       const existingToken = await this.deviceTokenRepository.findOneBy({
-        entity_id,
+        entity_id: dto.entity_id,
       });
+
       if (existingToken) {
         // Update the existing record
-        existingToken.firebase_device_token = firebase_device_token;
-        existingToken.entity_type = entity_type;
-        existingToken.lang = lang;
-        return await this.deviceTokenRepository.save(existingToken);
+        return this.deviceTokenRepository.save({ ...existingToken, ...dto });
       } else {
         // Create a new record
-        return await this.deviceTokenRepository.save(createDeviceTokenDto);
+        return this.deviceTokenRepository.save(dto);
       }
     } catch (error) {
       if (error.code === '23505') {

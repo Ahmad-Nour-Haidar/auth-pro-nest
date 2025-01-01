@@ -45,11 +45,11 @@ export enum TypeOrmFindOptions {
 }
 
 export function parseTypeOrmFilters<Entity>({
-  query,
+  query = {},
   allowedFields = {},
   customHandlers = {},
 }: {
-  query: Record<string, any>;
+  query?: Record<string, any>;
   allowedFields?: Record<string, FieldType | FieldTypeObject>;
   customHandlers?: Record<string, CustomOptionHandler>;
 }): FindOptionsWhere<Entity> {
@@ -93,7 +93,6 @@ export function parseTypeOrmFilters<Entity>({
 
     // Parse operator and raw value
     const [operator, rawValue] = parseOperatorAndValue(value);
-    console.log('fieldDef = ', fieldDef);
 
     // Custom handler
     if (customHandlers[key]?.handler) {
@@ -107,7 +106,6 @@ export function parseTypeOrmFilters<Entity>({
     // Check operator validity and assign filters
     checkFindOptions(key, operator, fieldType);
 
-    console.log('fieldType = ', fieldType);
     if (fieldType === 'array' || fieldType === 'enum') {
       const parsedValue = tryParse(key, rawValue, fieldType);
 
@@ -122,7 +120,6 @@ export function parseTypeOrmFilters<Entity>({
         s.length &&
         !parsedValue.every((val: any) => s.includes(val))
       ) {
-        console.log('sdsds');
         throw new BadRequestException(
           `Invalid values for key ${key}: ${parsedValue}. Allowed values are: ${s.join(',')}`,
         );
@@ -138,9 +135,8 @@ export function parseTypeOrmFilters<Entity>({
         tryParse,
       );
     }
-
-    return filters;
   }
+  return filters;
 }
 
 function assignTypeOrmFilter(
@@ -234,7 +230,8 @@ export function getParserForFieldType(
 
     case 'array':
     case 'enum':
-      return (value: string) => {
+      return (value: any) => {
+        if (Array.isArray(value)) return value;
         return value.toString().split(',');
       };
 

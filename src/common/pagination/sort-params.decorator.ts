@@ -6,6 +6,11 @@ import {
 import { Request } from 'express';
 import { FindOptionsOrder } from 'typeorm';
 
+export interface ParseSortingParams {
+  query?: Record<string, any>;
+  validParams?: string[];
+}
+
 export const SortingParams = createParamDecorator(
   <T>(
     validParams: string[] = [],
@@ -20,12 +25,9 @@ export const SortingParams = createParamDecorator(
 );
 
 export function parseSorting<T>({
-  query,
+  query = {},
   validParams = [],
-}: {
-  query: Record<string, any>;
-  validParams?: string[];
-}): FindOptionsOrder<T> {
+}: ParseSortingParams): FindOptionsOrder<T> {
   return _handle({
     query,
     validParams,
@@ -35,10 +37,7 @@ export function parseSorting<T>({
 function _handle<T>({
   query,
   validParams = [],
-}: {
-  query: Record<string, any>;
-  validParams?: string[];
-}): FindOptionsOrder<T> {
+}: ParseSortingParams): FindOptionsOrder<T> {
   let sort = query.sort;
 
   // If no sort parameter is provided, return an empty object
