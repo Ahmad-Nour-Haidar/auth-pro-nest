@@ -1,4 +1,13 @@
-import { PaginateParams } from './paginate.param';
+import { FindOptionsOrder, FindOptionsWhere, Repository } from 'typeorm';
+import { PaginationData } from './pagination-params.decorator';
+
+export interface PaginateParams<Entity> {
+  repository: Repository<Entity>; // The repository to perform operations on
+  paginationData: PaginationData; // The pagination details
+  where?: FindOptionsWhere<Entity> | FindOptionsWhere<Entity>[]; // The filters for the query
+  sorting?: FindOptionsOrder<Entity>; // The sorting for the query
+  withDeleted?: boolean;
+}
 
 export interface Pagination {
   total: number; // Total items
@@ -18,26 +27,9 @@ export interface PaginatedResult<Entity> {
 export async function paginate<Entity>(
   params: PaginateParams<Entity>,
 ): Promise<PaginatedResult<Entity>> {
-  const { repository, paginationDto, where, sorting } = params;
+  const { repository, paginationData, where, sorting, withDeleted } = params;
 
-  // If paginationDto is undefined or null, no pagination logic should be applied
-  if (!paginationDto) {
-    const data = await repository.find({ where, order: sorting });
-    const total = data.length;
-
-    return {
-      data,
-      pagination: {
-        total,
-        limit: total, // No pagination applied
-        page: 1, // Only 1 page
-        first: 1,
-        last: 1,
-      },
-    };
-  }
-
-  const { page, limit, skip } = paginationDto;
+  const { page, limit, skip } = paginationData;
 
   // Fetch data and total count from the repository
   const [data, total] = await repository.findAndCount({
@@ -45,6 +37,7 @@ export async function paginate<Entity>(
     order: sorting,
     skip,
     take: limit,
+    withDeleted,
   });
 
   // Calculate total pages
