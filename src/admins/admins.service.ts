@@ -34,6 +34,24 @@ export class AdminsService extends GenericRepository<Admin> {
     super(adminsRepository);
   }
 
+  async findAll(query?: Record<string, any>) {
+    const { data, pagination } = await super.find_all(query, {
+      username: 'string',
+      full_name: 'string',
+      email: 'string',
+      roles: { type: 'enum', enum: Roles },
+    });
+
+    return {
+      admins: data.map((admin) => transformToDto(AdminResponseDto, admin)),
+      pagination,
+    };
+  }
+
+  async findOne(id: string): Promise<Admin> {
+    return super.get_one({ id });
+  }
+
   async create(createAdminDto: CreateAdminDto): Promise<Admin> {
     // Check if the email or username already exists
     await this.checkForExistingAdmin(createAdminDto);
@@ -57,24 +75,6 @@ export class AdminsService extends GenericRepository<Admin> {
     });
 
     return this.adminsRepository.save(admin);
-  }
-
-  async findAll(query?: Record<string, any>) {
-    const { data, pagination } = await super.find_all(query, {
-      username: 'string',
-      full_name: 'string',
-      email: 'string',
-      roles: { type: 'enum', enum: Roles },
-    });
-
-    return {
-      admins: data.map((admin) => transformToDto(AdminResponseDto, admin)),
-      pagination,
-    };
-  }
-
-  async findOne(id: string): Promise<Admin> {
-    return super.get_one({ id });
   }
 
   async update(id: string, updateAdminDto: UpdateAdminDto): Promise<Admin> {
