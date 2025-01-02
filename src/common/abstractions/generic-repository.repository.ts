@@ -19,8 +19,8 @@ export class GenericRepository<T extends BaseEntity> {
 
   @Inject() private readonly i18n_: CustomI18nService;
 
-  // Find all entities
-  async find_all({
+  // Get entities with (filtering - sorting - pagination)
+  async paginate({
     query = {},
     allowedFields,
     filterDeveloper,
@@ -83,9 +83,7 @@ export class GenericRepository<T extends BaseEntity> {
   async soft_delete(id: string): Promise<void> {
     const result = await this.repository.softDelete(id);
     if (!result.affected) {
-      throw new NotFoundException(
-        `${this.repository.metadata.name} with ID ${id} not found`,
-      );
+      throw new NotFoundException(this.notFoundMsg(id));
     }
   }
 
@@ -93,9 +91,7 @@ export class GenericRepository<T extends BaseEntity> {
   async hard_delete(id: string): Promise<void> {
     const result = await this.repository.delete(id);
     if (!result.affected) {
-      throw new NotFoundException(
-        `${this.repository.metadata.name} with ID ${id} not found`,
-      );
+      throw new NotFoundException(this.notFoundMsg(id));
     }
   }
 
@@ -108,8 +104,16 @@ export class GenericRepository<T extends BaseEntity> {
   }
 
   private notFoundMsg(id: any): string {
+    let name = this.repository.metadata.name.toLowerCase();
+    name = this.i18n_.tr(GenericRepository.mappedNames[name] ?? name);
     return this.i18n_.tr(TranslationKeys.entity_not_found, {
-      args: { id, name: this.repository.metadata.name },
+      args: { id, name },
     });
   }
+
+  private static mappedNames: Record<string, string> = {
+    notification: TranslationKeys.notification,
+    admin: TranslationKeys.admin,
+    user: TranslationKeys.user,
+  };
 }

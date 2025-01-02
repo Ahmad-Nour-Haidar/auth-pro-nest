@@ -98,5 +98,8 @@
   "notification_retrieved_successfully": "Notification retrieved successfully.",
   "notification_marked_successfully": "Notification marked successfully.",
   "notifications_marked_successfully": "Notifications marked successfully.",
-  "entity_not_found": "There is no {name} with this ID {id}."
+  "entity_not_found": "There is no {name} with this ID {id}.",
+  "notification": "notification",
+  "admin": "admin",
+  "user": "user"
 }

@@ -98,5 +98,8 @@
   "notification_retrieved_successfully": "تم استرجاع الإشعار بنجاح.",
   "notification_marked_successfully": "تم وضع علامة على الإشعار بنجاح.",
   "notifications_marked_successfully": "تم وضع علامة على الإشعارات بنجاح.",
-  "entity_not_found": "ليس هناك أي {name} لهذا المعرف {id}."
+  "entity_not_found": "ليس هناك أي {name} لهذا المعرف {id}.",
+  "notification": "إشعار",
+  "admin": "مشرف",
+  "user": "مستخدم"
 }

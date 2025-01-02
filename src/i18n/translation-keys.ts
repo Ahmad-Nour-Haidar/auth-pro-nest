@@ -104,4 +104,7 @@ export class TranslationKeys {
   static notification_marked_successfully = 'translations.notification_marked_successfully';
   static notifications_marked_successfully = 'translations.notifications_marked_successfully';
   static entity_not_found = 'translations.entity_not_found';
+  static notification = 'translations.notification';
+  static admin = 'translations.admin';
+  static user = 'translations.user';
 }

@@ -32,7 +32,7 @@ export class NotificationsService extends GenericRepository<Notification> {
   }
 
   async findAll(entity_id: string, query?: Record<string, any>) {
-    const { data, pagination } = await super.find_all({
+    const { data, pagination } = await super.paginate({
       query,
       allowedFields: {
         title: 'string',

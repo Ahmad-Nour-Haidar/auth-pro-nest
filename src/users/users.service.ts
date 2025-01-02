@@ -36,7 +36,7 @@ export class UsersService extends GenericRepository<User> {
   }
 
   async findAll(query?: Record<string, any>) {
-    const { data, pagination } = await super.find_all({
+    const { data, pagination } = await super.paginate({
       query,
       allowedFields: {
         username: 'string',
