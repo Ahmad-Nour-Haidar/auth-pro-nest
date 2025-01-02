@@ -72,12 +72,7 @@ export class UsersService extends GenericRepository<User> {
       roles: [Roles.user],
     });
 
-    await this.mailService.sendMail({
-      username: user.username,
-      to: user.email,
-      subject: 'Verification Code',
-      text: `Your verification code is: ${verifyCode}`,
-    });
+    await this.mailService.sendVerificationEmail(user, verifyCode);
 
     return this.usersRepository.save(user);
   }
@@ -118,9 +113,10 @@ export class UsersService extends GenericRepository<User> {
       if (filesToSave.length > 0) {
         const results = await this.fileManagerService.save({
           files: filesToSave,
-          service: this.configService.get<FileStorageService>(
-            'FILE_STORAGE_SERVICES',
-          ),
+          service: FileStorageService.Cloudinary,
+          // service: this.configService.get<FileStorageService>(
+          //   'FILE_STORAGE_SERVICES',
+          // ),
         });
 
         // Assign saved files to the user object

@@ -67,12 +67,7 @@ export class UsersAuthService {
       roles: [Roles.user],
     });
 
-    await this.mailService.sendMail({
-      username: user.username,
-      to: user.email,
-      subject: 'Verification Code',
-      text: `Your verification code is: ${verifyCode}`,
-    });
+    await this.mailService.sendVerificationEmail(user, verifyCode);
 
     return this.usersRepository.save(user);
   }
@@ -132,12 +127,7 @@ export class UsersAuthService {
     await this.usersRepository.save(user);
 
     // Send the verification code via email
-    await this.mailService.sendMail({
-      username: user.username,
-      to: user.email,
-      subject: 'Verification Code',
-      text: `Your verification code is: ${user.verify_code}`,
-    });
+    await this.mailService.sendVerificationEmail(user, user.verify_code);
 
     return user;
   }

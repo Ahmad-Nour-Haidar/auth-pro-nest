@@ -81,9 +81,7 @@ export class UsersAuthController {
     const result = await this.usersAuthService.googleSignIn(googleSignInDto);
     return this.responseService.success(
       this.i18n.tr(TranslationKeys.google_sign_in_successful),
-      {
-        result,
-      },
+      result,
     );
   }
 

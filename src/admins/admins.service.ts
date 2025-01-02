@@ -70,12 +70,7 @@ export class AdminsService extends GenericRepository<Admin> {
       verify_code: verifyCode,
     });
 
-    await this.mailService.sendMail({
-      username: admin.username,
-      to: admin.email,
-      subject: 'Verification Code',
-      text: `Your verification code is: ${verifyCode}`,
-    });
+    await this.mailService.sendVerificationEmail(admin, verifyCode);
 
     return this.adminsRepository.save(admin);
   }

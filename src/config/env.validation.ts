@@ -64,6 +64,9 @@ export class EnvironmentVariables {
 
   @IsEnum(FileStorageService)
   FILE_STORAGE_SERVICES: FileStorageService;
+
+  @IsString()
+  FIREBASE_SERVICE_ACCOUNT: string;
 }
 
 // Validation function to ensure env values are properly validated

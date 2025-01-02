@@ -90,12 +90,7 @@ export class AdminsAuthService {
     await this.adminsRepository.save(admin);
 
     // Send the verification code via email
-    await this.mailService.sendMail({
-      username: admin.username,
-      to: admin.email,
-      subject: 'Password Reset Verification Code',
-      text: `Your verification code is: ${admin.verify_code}`,
-    });
+    await this.mailService.sendVerificationEmail(admin, admin.verify_code);
 
     return admin;
   }
