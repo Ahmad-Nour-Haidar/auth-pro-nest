@@ -9,28 +9,32 @@ import { In, IsNull, Not, Repository } from 'typeorm';
 import { DeviceToken } from './entities/device-token.entity';
 import { CustomI18nService } from '../common/services/custom-i18n.service';
 import { TranslationKeys } from '../i18n/translation-keys';
+import { GenericRepository } from '../common/abstractions/generic-repository.repository';
 
 @Injectable()
-export class DeviceTokenService {
+export class DeviceTokenService extends GenericRepository<DeviceToken> {
   constructor(
     @InjectRepository(DeviceToken)
     private readonly deviceTokenRepository: Repository<DeviceToken>,
     private readonly i18n: CustomI18nService,
-  ) {}
+  ) {
+    super(deviceTokenRepository);
+  }
 
   async set(dto: CreateDeviceTokenDto): Promise<DeviceToken> {
+    // Check if a record with the given entity_id exists
+    const existingToken = await this.deviceTokenRepository.findOneBy({
+      entity_id: dto.entity_id,
+    });
     try {
-      // Check if a record with the given entity_id exists
-      const existingToken = await this.deviceTokenRepository.findOneBy({
-        entity_id: dto.entity_id,
-      });
-
       if (existingToken) {
-        // Update the existing record
-        return this.deviceTokenRepository.save({ ...existingToken, ...dto });
+        return await this.deviceTokenRepository.save({
+          ...existingToken,
+          ...dto,
+        });
       } else {
         // Create a new record
-        return this.deviceTokenRepository.save(dto);
+        return await this.deviceTokenRepository.save(dto);
       }
     } catch (error) {
       if (error.code === '23505') {

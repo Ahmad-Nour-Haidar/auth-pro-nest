@@ -29,7 +29,7 @@ export class DeviceTokenController {
   @Post()
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
-  async setForUser(
+  async set(
     @Body() dto: SetDeviceTokenAndLanguageDto,
     @CurrentUser() entity: User | Admin,
     @CurrentEntityType() entityType: EntityTypeEnum,
@@ -44,7 +44,7 @@ export class DeviceTokenController {
 
   @Delete()
   @UseGuards(JwtAuthGuard)
-  async deleteForUser(@CurrentUser() entity: User | Admin) {
+  async delete(@CurrentUser() entity: User | Admin) {
     await this.deviceTokenService.deleteByEntityId({
       entity_id: entity.id,
     });

@@ -8,9 +8,6 @@ export class GoogleAuthService {
 
   constructor(private readonly configService: ConfigService) {
     const clientId = this.configService.get<string>('GOOGLE_CLIENT_ID');
-    // if (!clientId) {
-    //   throw new Error('GOOGLE_CLIENT_ID is not defined in the configuration');
-    // }
     this.oauthClient = new OAuth2Client(clientId);
   }
 
@@ -28,11 +25,11 @@ export class GoogleAuthService {
       });
       const payload = ticket.getPayload();
 
-      console.log('====================');
-      console.log(ticket);
-      console.log('====================');
-      console.log(payload);
-      console.log('====================');
+      // console.log('====================');
+      // console.log(ticket);
+      // console.log('====================');
+      // console.log(payload);
+      // console.log('====================');
 
       // Validate required fields
       if (!payload || !payload.email_verified) {
@@ -41,6 +38,7 @@ export class GoogleAuthService {
 
       return payload; // Contains user info like email, name, etc.
     } catch (error) {
+      console.error(error);
       throw new UnauthorizedException('Invalid Google ID token');
     }
   }
