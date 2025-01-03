@@ -78,7 +78,7 @@ export class AdminsAuthService {
     return { token, admin: transformToDto(AdminAuthResponseDto, admin) };
   }
 
-  async checkEmail(checkEmailDto: CheckEmailDto): Promise<Admin> {
+  async sendCode(checkEmailDto: CheckEmailDto): Promise<Admin> {
     const admin = await this.getAdminByEmailOrUsername({
       email: checkEmailDto.email,
       username: checkEmailDto.username,

@@ -29,10 +29,11 @@ import { RegisterUserDto } from './dto/register-user.dto';
 import { UserAuthResponseDto } from './dto/user-auth-response.dto';
 import { GoogleSignInDto } from './dto/google-sign-in.dto';
 import { GoogleAuthService } from './services/google-auth.service';
-import { RandomService } from '../common/services/random.service';
 import { TranslationKeys } from '../i18n/translation-keys';
 import { CustomI18nService } from '../common/services/custom-i18n.service';
 import { JwtSignPayload } from '../common/types/jwt-payload.types';
+import { VerifyCodeManagerService } from './services/verify-code-manager.service';
+import { RandomService } from '../common/services/random.service';
 
 @Injectable()
 export class UsersAuthService {
@@ -47,6 +48,7 @@ export class UsersAuthService {
     private readonly googleAuthService: GoogleAuthService,
     private readonly randomService: RandomService,
     private readonly i18n: CustomI18nService,
+    private readonly verifyCodeManagerService: VerifyCodeManagerService,
   ) {}
 
   async register(registerUserDto: RegisterUserDto): Promise<User> {
@@ -58,12 +60,14 @@ export class UsersAuthService {
       registerUserDto.password,
     );
 
-    const verifyCode = this.randomService.getRandomNumericString(6);
+    // Generate a new verification code
+    const { verifyCode, encryptedVerifyCode } =
+      this.verifyCodeManagerService.getVerifyCode();
 
     const user = this.usersRepository.create({
       ...registerUserDto,
       create_method: CreateMethod.localEmail,
-      verify_code: verifyCode,
+      verify_code: encryptedVerifyCode,
       roles: [Roles.user],
     });
 
@@ -115,19 +119,35 @@ export class UsersAuthService {
     return { token, user: transformToDto(UserAuthResponseDto, user) };
   }
 
-  async checkEmail(checkEmailDto: CheckEmailDto): Promise<User> {
+  async sendCode(checkEmailDto: CheckEmailDto): Promise<User> {
     const user = await this.getUserByEmailOrUsername({
       email: checkEmailDto.email,
       username: checkEmailDto.username,
     });
 
-    user.verify_code = this.randomService.getRandomNumericString(6);
+    const { interval_to_send_verify_code, allowed_date_to_send_verify_code } =
+      this.verifyCodeManagerService.canSendCode({
+        interval_to_send_verify_code: user.interval_to_send_verify_code,
+        allowed_date_to_send_verify_code: user.allowed_date_to_send_verify_code,
+      });
+
+    user.interval_to_send_verify_code = interval_to_send_verify_code;
+    user.allowed_date_to_send_verify_code = allowed_date_to_send_verify_code;
+
+    // Generate a new verification code
+    const { verifyCode, encryptedVerifyCode } =
+      this.verifyCodeManagerService.getVerifyCode();
+
+    user.verify_code = encryptedVerifyCode;
+
+    // Reset `verified_at` to null
     user.verified_at = null;
 
+    // Save the updated user
     await this.usersRepository.save(user);
 
     // Send the verification code via email
-    await this.mailService.sendVerificationEmail(user, user.verify_code);
+    await this.mailService.sendVerificationEmail(user, verifyCode);
 
     return user;
   }
@@ -138,14 +158,16 @@ export class UsersAuthService {
       username: verifyCodeDto.username,
     });
 
-    if (user.verify_code !== verifyCodeDto.code) {
+    const verifyCode = this.verifyCodeManagerService.verify(user.verify_code);
+
+    if (verifyCode !== verifyCodeDto.code) {
       throw new BadRequestException(
         this.i18n.tr(TranslationKeys.invalid_verification_code),
       );
     }
 
+    // Mark the user as verified
     user.verified_at = new Date();
-
     user.verify_code = null;
 
     return this.usersRepository.save(user);
@@ -361,7 +383,7 @@ export class UsersAuthService {
       roles: [Roles.user],
     });
 
-    await this.usersRepository.save(user);
+    user = await this.usersRepository.save(user);
 
     const payload: JwtSignPayload = { id: user.id, roles: user.roles };
     const token: string = this.jwtService.sign(payload);

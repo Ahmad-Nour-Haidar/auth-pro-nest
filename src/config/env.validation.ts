@@ -67,6 +67,9 @@ export class EnvironmentVariables {
 
   @IsString()
   FIREBASE_SERVICE_ACCOUNT: string;
+
+  @IsNumber()
+  JWT_EXPIRE_TIME_CODE: number;
 }
 
 // Validation function to ensure env values are properly validated

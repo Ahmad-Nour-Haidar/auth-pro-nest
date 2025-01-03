@@ -10,7 +10,7 @@ import { JwtPayload } from '../../common/types/jwt-payload.types';
 @Injectable()
 export class JwtUserStrategy extends PassportStrategy(Strategy, 'jwt-user') {
   constructor(
-    private readonly configService: ConfigService,
+    configService: ConfigService,
     private readonly usersService: UsersService,
     private readonly validationService: JwtValidationService,
   ) {

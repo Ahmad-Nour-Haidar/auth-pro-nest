@@ -85,10 +85,10 @@ export class UsersAuthController {
     );
   }
 
-  @Post('check-email')
+  @Post('send-code')
   @HttpCode(HttpStatus.OK)
-  async checkEmail(@Body() checkEmailDto: CheckEmailDto) {
-    await this.usersAuthService.checkEmail(checkEmailDto);
+  async sendCode(@Body() checkEmailDto: CheckEmailDto) {
+    await this.usersAuthService.sendCode(checkEmailDto);
     return this.responseService.success(
       this.i18n.tr(TranslationKeys.verification_code_sent),
     );

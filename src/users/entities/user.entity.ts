@@ -51,11 +51,17 @@ export class User {
   @Column({ type: 'timestamp', nullable: true })
   blocked_at?: Date;
 
-  @Column({ type: 'varchar', length: 6, nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   verify_code: string;
 
   @Column({ type: 'timestamp', nullable: true })
   verified_at?: Date;
+
+  @Column({ type: 'integer', nullable: true })
+  interval_to_send_verify_code?: number; // seconds
+
+  @Column({ type: 'timestamp', nullable: true })
+  allowed_date_to_send_verify_code?: Date;
 
   @Column({ type: 'jsonb', nullable: true })
   profile_image?: FileMetadata;
