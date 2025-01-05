@@ -101,5 +101,10 @@
   "entity_not_found": "There is no {name} with this ID {id}.",
   "notification": "notification",
   "admin": "admin",
-  "user": "user"
+  "user": "user",
+  "verification_code_retry": "You can get the verification code after {timeDifference}.",
+  "verification_code_expired": "The verification code has expired. Please request a new one.",
+  "time_minutes": "{minutes} minute(s)",
+  "time_hours": "{hours} hour(s)",
+  "time_days": "{days} day(s)"
 }

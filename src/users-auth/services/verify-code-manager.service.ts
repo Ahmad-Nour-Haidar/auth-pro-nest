@@ -2,6 +2,8 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { RandomService } from '../../common/services/random.service';
 import { ConfigService } from '@nestjs/config';
+import { CustomI18nService } from '../../common/services/custom-i18n.service';
+import { TranslationKeys } from '../../i18n/translation-keys';
 
 export interface CanSendCodeParams {
   interval_to_send_verify_code?: number;
@@ -14,6 +16,7 @@ export class VerifyCodeManagerService {
     private readonly jwtService: JwtService,
     private readonly randomService: RandomService,
     private readonly configService: ConfigService,
+    private readonly i18n: CustomI18nService,
   ) {}
 
   // Define the next intervals in seconds
@@ -37,13 +40,13 @@ export class VerifyCodeManagerService {
 
     if (differenceInSeconds < 3600) {
       const minutes = Math.ceil(differenceInSeconds / 60);
-      return `${minutes} minute(s)`;
+      return this.i18n.tr(TranslationKeys.time_minutes, { args: { minutes } });
     } else if (differenceInSeconds < 86400) {
       const hours = Math.ceil(differenceInSeconds / 3600);
-      return `${hours} hour(s)`;
+      return this.i18n.tr(TranslationKeys.time_hours, { args: { hours } });
     } else {
       const days = Math.ceil(differenceInSeconds / 86400);
-      return `${days} day(s)`;
+      return this.i18n.tr(TranslationKeys.time_days, { args: { days } });
     }
   }
 
@@ -60,7 +63,9 @@ export class VerifyCodeManagerService {
       if (allowedTime > now) {
         const timeDifference = this.calculateTimeDifference(now, allowedTime);
         throw new BadRequestException(
-          `You can get the verification code after ${timeDifference}.`,
+          this.i18n.tr(TranslationKeys.verification_code_retry, {
+            args: { timeDifference },
+          }),
         );
       }
     }
@@ -91,10 +96,12 @@ export class VerifyCodeManagerService {
     } catch (error) {
       if (error.name === 'TokenExpiredError') {
         throw new BadRequestException(
-          'The verification code has expired. Please request a new one.',
+          this.i18n.tr(TranslationKeys.verification_code_expired),
         );
       }
-      throw new BadRequestException('Invalid verification code.');
+      throw new BadRequestException(
+        this.i18n.tr(TranslationKeys.invalid_verification_code),
+      );
     }
   }
 

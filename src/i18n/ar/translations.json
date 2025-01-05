@@ -101,5 +101,10 @@
   "entity_not_found": "ليس هناك أي {name} لهذا المعرف {id}.",
   "notification": "إشعار",
   "admin": "مشرف",
-  "user": "مستخدم"
+  "user": "مستخدم",
+  "verification_code_retry": "يمكنك الحصول على رمز التحقق بعد {timeDifference}.",
+  "verification_code_expired": "انتهت صلاحية رمز التحقق. يرجى طلب رمز جديد.",
+  "time_minutes": "{minutes} دقيقة/دقائق",
+  "time_hours": "{hours} ساعة/ساعات",
+  "time_days": "{days} يوم/أيام"
 }

@@ -107,4 +107,9 @@ export class TranslationKeys {
   static notification = 'translations.notification';
   static admin = 'translations.admin';
   static user = 'translations.user';
+  static verification_code_retry = 'translations.verification_code_retry';
+  static verification_code_expired = 'translations.verification_code_expired';
+  static time_minutes = 'translations.time_minutes';
+  static time_hours = 'translations.time_hours';
+  static time_days = 'translations.time_days';
 }
