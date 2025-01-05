@@ -143,11 +143,11 @@ export class UsersAuthService {
     // Reset `verified_at` to null
     user.verified_at = null;
 
-    // Save the updated user
-    await this.usersRepository.save(user);
-
     // Send the verification code via email
     await this.mailService.sendVerificationEmail(user, verifyCode);
+
+    // Save the updated user
+    await this.usersRepository.save(user);
 
     return user;
   }

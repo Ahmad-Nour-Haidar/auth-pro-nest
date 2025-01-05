@@ -25,16 +25,31 @@ export class VerifyCodeManagerService {
     10800: 21600, // 3 hours -> 6 hours
     21600: 43200, // 6 hours -> 12 hours
     43200: 86400, // 12 hours -> 24 hours
+    86400: 259200, // 1 day -> 3 days
+    259200: 604800, // 3 days -> 7 days
+    604800: 1209600, // 7 days -> 14 days
+    1209600: 1814400, // 14 days -> 21 days
+    1814400: 2419200, // 21 days -> 28 days
   };
 
-  private calculateMinutesDifference(from: number, to: number): number {
-    return Math.ceil((to - from) / 60);
+  private calculateTimeDifference(from: number, to: number): string {
+    const differenceInSeconds = to - from;
+
+    if (differenceInSeconds < 3600) {
+      const minutes = Math.ceil(differenceInSeconds / 60);
+      return `${minutes} minute(s)`;
+    } else if (differenceInSeconds < 86400) {
+      const hours = Math.ceil(differenceInSeconds / 3600);
+      return `${hours} hour(s)`;
+    } else {
+      const days = Math.ceil(differenceInSeconds / 86400);
+      return `${days} day(s)`;
+    }
   }
 
   canSendCode(canSendCodeParams: CanSendCodeParams) {
     let { interval_to_send_verify_code, allowed_date_to_send_verify_code } =
       canSendCodeParams;
-
     const now = Math.floor(Date.now() / 1000); // Current time in seconds
 
     // Check if the user must wait before requesting a new code
@@ -43,21 +58,19 @@ export class VerifyCodeManagerService {
         new Date(allowed_date_to_send_verify_code).getTime() / 1000,
       );
       if (allowedTime > now) {
-        const minutes = this.calculateMinutesDifference(now, allowedTime);
+        const timeDifference = this.calculateTimeDifference(now, allowedTime);
         throw new BadRequestException(
-          `You can get the verification code after ${minutes} minutes.`,
+          `You can get the verification code after ${timeDifference}.`,
         );
       }
     }
 
     // Assign the next interval or initialize to the default
     if (
-      // !interval_to_send_verify_code ||
+      !interval_to_send_verify_code ||
       !this.nextIntervals.hasOwnProperty(interval_to_send_verify_code)
     ) {
-      interval_to_send_verify_code = Number.parseInt(
-        Object.keys(this.nextIntervals)[0],
-      );
+      interval_to_send_verify_code = Number(Object.keys(this.nextIntervals)[0]); // Default interval
     } else {
       interval_to_send_verify_code =
         this.nextIntervals[interval_to_send_verify_code];
@@ -78,9 +91,10 @@ export class VerifyCodeManagerService {
     } catch (error) {
       if (error.name === 'TokenExpiredError') {
         throw new BadRequestException(
-          'The verification code was issued more than 5 minutes ago, Please try later!',
+          'The verification code has expired. Please request a new one.',
         );
       }
+      throw new BadRequestException('Invalid verification code.');
     }
   }
 
@@ -93,6 +107,7 @@ export class VerifyCodeManagerService {
       { verifyCode },
       { expiresIn: this.configService.get<number>('JWT_EXPIRE_TIME_CODE') },
     );
+
     return { verifyCode, encryptedVerifyCode };
   }
 }

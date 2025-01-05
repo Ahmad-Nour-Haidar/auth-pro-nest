@@ -1,4 +1,8 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
 import * as fs from 'fs';
 import { User } from '../../users/entities/user.entity';
@@ -48,11 +52,18 @@ export class MailService {
       .replace('{{verification_code}}', code.toString().split('').join(' '))
       .replace('{{logo_url}}', logoUrl);
 
-    await this.transporter.sendMail({
-      from: '"ProFinder" <ProFinder@gmail.com>',
-      to: user.email,
-      subject: 'Your Verification Code',
-      html: emailContent,
-    });
+    try {
+      await this.transporter.sendMail({
+        from: '"ProFinder" <ProFinder@gmail.com>',
+        to: user.email,
+        subject: 'Your Verification Code',
+        html: emailContent,
+      });
+      return true;
+    } catch (e) {
+      throw new BadRequestException(
+        'There was an error sending the verification email. Please try again later.',
+      );
+    }
   }
 }

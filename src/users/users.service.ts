@@ -15,12 +15,11 @@ import { FileManagerService } from '../file-manager/file-manager.service';
 import { FileStorageService } from '../file-manager/enums/file-storage-service.enum';
 import { FileMetadata } from '../file-manager/classes/file-metadata';
 import { MulterFile } from '../file-manager/types/file.types';
-import { ConfigService } from '@nestjs/config';
 import { GenericRepository } from '../common/abstractions/generic-repository.repository';
 import { transformToDto } from '../common/util/transform.util';
 import { UserResponseDto } from './dto/user-response.dto';
 
-@Injectable()
+@Injectable() // this line
 export class UsersService extends GenericRepository<User> {
   constructor(
     @InjectRepository(User)
@@ -30,7 +29,6 @@ export class UsersService extends GenericRepository<User> {
     private readonly randomService: RandomService,
     private readonly i18n: CustomI18nService,
     private readonly fileManagerService: FileManagerService,
-    private readonly configService: ConfigService,
   ) {
     super(usersRepository);
   }
@@ -243,26 +241,4 @@ export class UsersService extends GenericRepository<User> {
       }
     }
   }
-
-  // private async getUserById({
-  //   id,
-  //   withDeleted = true,
-  // }: {
-  //   id: string;
-  //   withDeleted?: boolean;
-  // }): Promise<User> {
-  //   // await this.usersRepository.findOneBy({ id }, { withDeleted: true });
-  //   const user = await this.usersRepository.findOne({
-  //     where: { id },
-  //     withDeleted: withDeleted,
-  //   });
-  //   if (!user) {
-  //     throw new NotFoundException(
-  //       this.i18n.tr(TranslationKeys.account_not_found_with_id, {
-  //         args: { id },
-  //       }),
-  //     );
-  //   }
-  //   return user;
-  // }
 }
