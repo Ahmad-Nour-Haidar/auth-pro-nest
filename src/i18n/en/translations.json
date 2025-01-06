@@ -106,5 +106,6 @@
   "verification_code_expired": "The verification code has expired. Please request a new one.",
   "time_minutes": "{minutes} minute(s)",
   "time_hours": "{hours} hour(s)",
-  "time_days": "{days} day(s)"
+  "time_days": "{days} day(s)",
+  "too_many_requests": "Too many requests. Please try again later."
 }

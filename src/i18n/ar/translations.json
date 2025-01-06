@@ -106,5 +106,6 @@
   "verification_code_expired": "انتهت صلاحية رمز التحقق. يرجى طلب رمز جديد.",
   "time_minutes": "{minutes} دقيقة/دقائق",
   "time_hours": "{hours} ساعة/ساعات",
-  "time_days": "{days} يوم/أيام"
+  "time_days": "{days} يوم/أيام",
+  "too_many_requests": "عدد كبير جدًا من الطلبات. يرجى المحاولة مرة أخرى لاحقًا."
 }

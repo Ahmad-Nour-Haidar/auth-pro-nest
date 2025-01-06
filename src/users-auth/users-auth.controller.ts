@@ -17,7 +17,7 @@ import { VerifyCodeDto } from './dto/verify-code.dto';
 import { CheckEmailDto } from './dto/check-email.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
-import { CurrentUser } from '../common/decorators';
+import { CurrentUser, CustomThrottleAuth } from '../common/decorators';
 import { OtpCodeDto } from '../common/dto/otp-code.dto';
 import { LoginWithOtpDto } from '../common/dto/login-with-otp.dto';
 import { User } from '../users/entities/user.entity';
@@ -34,8 +34,11 @@ import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { createParseFilePipe } from '../file-manager/validator/files-validation-factory';
 import { AllowedTypes } from '../file-manager/constants/file.constants';
 import { MulterFile } from '../file-manager/types/file.types';
+import { SkipThrottle, ThrottlerGuard } from '@nestjs/throttler';
 
 @Controller('users-auth')
+@UseGuards(ThrottlerGuard)
+@CustomThrottleAuth()
 export class UsersAuthController {
   constructor(
     private readonly usersAuthService: UsersAuthService,
@@ -159,6 +162,7 @@ export class UsersAuthController {
     );
   }
 
+  @SkipThrottle()
   @Get('me')
   @UseGuards(JwtAuthUserGuard)
   async me(@CurrentUser() user: User) {

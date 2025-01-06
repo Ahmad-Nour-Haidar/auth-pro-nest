@@ -1,6 +1,7 @@
 export * from './current-admin.decorator';
 export * from './current-entity-type.decorator';
 export * from './current-user.decorator';
+export * from './custom-throttle.decorator';
 export * from './is-authenticated.decorator';
 export * from './match.decorator';
 export * from './public.decorator';

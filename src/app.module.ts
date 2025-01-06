@@ -2,7 +2,7 @@ import { Global, MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ThrottlerModule } from '@nestjs/throttler';
+import { minutes, ThrottlerModule } from '@nestjs/throttler';
 import { UsersModule } from './users/users.module';
 import { NodeEnv, validate } from './config/env.validation';
 import { LoggerMiddleware } from './middleware/logger.middleware';
@@ -23,6 +23,8 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import * as process from 'node:process';
 import { WithDeletedMiddleware } from './middleware/with-deleted.middleware';
+import { APP_FILTER } from '@nestjs/core';
+import { ThrottlerExceptionFilter } from './common/exceptions/throttler-exception/throttler-exception.filter';
 
 @Global()
 @Module({
@@ -76,8 +78,8 @@ import { WithDeletedMiddleware } from './middleware/with-deleted.middleware';
     // Rate Limiting (optional but recommended)
     ThrottlerModule.forRoot([
       {
-        ttl: 60000, // 60,000 milliseconds (or 1 minute)
-        limit: 10, // maximum number of requests allowed within the specified TTL
+        ttl: minutes(1),
+        limit: 3, // maximum number of requests allowed within the specified TTL
       },
     ]),
 
@@ -98,7 +100,18 @@ import { WithDeletedMiddleware } from './middleware/with-deleted.middleware';
     NotificationsModule,
     FileManagerModule,
   ],
-  providers: [AppService, JwtStrategy],
+  providers: [
+    AppService,
+    JwtStrategy,
+    // {
+    //   provide: APP_GUARD,
+    //   useClass: ThrottlerGuard,
+    // },
+    {
+      provide: APP_FILTER,
+      useClass: ThrottlerExceptionFilter,
+    },
+  ],
   controllers: [AppController],
   exports: [JwtModule, UsersAuthModule, AdminsAuthModule, FileManagerModule],
 })

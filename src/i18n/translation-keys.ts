@@ -112,4 +112,5 @@ export class TranslationKeys {
   static time_minutes = 'translations.time_minutes';
   static time_hours = 'translations.time_hours';
   static time_days = 'translations.time_days';
+  static too_many_requests = 'translations.too_many_requests';
 }
