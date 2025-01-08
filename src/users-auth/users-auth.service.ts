@@ -64,16 +64,18 @@ export class UsersAuthService {
     const { verifyCode, encryptedVerifyCode } =
       this.verifyCodeManagerService.getVerifyCode();
 
-    const user = this.usersRepository.create({
+    let user = this.usersRepository.create({
       ...registerUserDto,
       create_method: CreateMethod.localEmail,
       verify_code: encryptedVerifyCode,
       roles: [Roles.user],
     });
 
+    user = await this.usersRepository.save(user);
+
     await this.mailService.sendVerificationEmail(user, verifyCode);
 
-    return this.usersRepository.save(user);
+    return user;
   }
 
   async login(loginDto: LoginUserDto) {
