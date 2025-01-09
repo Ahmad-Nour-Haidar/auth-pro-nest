@@ -4,7 +4,6 @@ import {
   Get,
   HttpCode,
   HttpStatus,
-  InternalServerErrorException,
   Patch,
   Post,
   UploadedFiles,
@@ -167,13 +166,12 @@ export class UsersAuthController {
   @Get('me')
   @UseGuards(JwtAuthUserGuard)
   async me(@CurrentUser() user: User) {
-    throw new InternalServerErrorException('Test logger');
-    // return this.responseService.success(
-    //   this.i18n.tr(TranslationKeys.user_retrieved),
-    //   {
-    //     user: transformToDto(UserAuthResponseDto, user),
-    //   },
-    // );
+    return this.responseService.success(
+      this.i18n.tr(TranslationKeys.user_retrieved),
+      {
+        user: transformToDto(UserAuthResponseDto, user),
+      },
+    );
   }
 
   @Patch('me')
