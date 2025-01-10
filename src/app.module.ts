@@ -25,6 +25,7 @@ import * as process from 'node:process';
 import { WithDeletedMiddleware } from './middleware/with-deleted.middleware';
 import { APP_FILTER } from '@nestjs/core';
 import { ThrottlerExceptionFilter } from './common/exceptions/throttler-exception/throttler-exception.filter';
+import { getDatabaseConfig } from './db/database.config';
 
 @Global()
 @Module({
@@ -63,26 +64,28 @@ import { ThrottlerExceptionFilter } from './common/exceptions/throttler-exceptio
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => {
-        const isProduction =
-          configService.get<string>('NODE_ENV') === NodeEnv.production;
-
-        return {
-          type: 'postgres',
-          host: configService.get<string>('DB_HOST'),
-          port: configService.get<number>('DB_PORT'),
-          username: configService.get<string>('DB_USERNAME'),
-          password: configService.get<string>('DB_PASSWORD'),
-          database: configService.get<string>('DB_NAME'),
-          autoLoadEntities: true,
-          synchronize: configService.get<boolean>('DB_SYNCHRONIZE'), // Set false in production
-          ...(isProduction && {
-            ssl: {
-              rejectUnauthorized: false, // Necessary for Supabase
-            },
-          }),
-        };
-      },
+      useFactory: (configService: ConfigService) =>
+        getDatabaseConfig(configService),
+      // useFactory: (configService: ConfigService) => {
+      //   const isProduction =
+      //     configService.get<string>('NODE_ENV') === NodeEnv.production;
+      //
+      //   return {
+      //     type: 'postgres',
+      //     host: configService.get<string>('DB_HOST'),
+      //     port: configService.get<number>('DB_PORT'),
+      //     username: configService.get<string>('DB_USERNAME'),
+      //     password: configService.get<string>('DB_PASSWORD'),
+      //     database: configService.get<string>('DB_NAME'),
+      //     autoLoadEntities: true,
+      //     synchronize: configService.get<boolean>('DB_SYNCHRONIZE'), // Set false in production
+      //     ...(isProduction && {
+      //       ssl: {
+      //         rejectUnauthorized: false, // Necessary for Supabase
+      //       },
+      //     }),
+      //   };
+      // },
     }),
 
     // Rate Limiting (optional but recommended)
